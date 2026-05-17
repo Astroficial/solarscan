@@ -1,6 +1,7 @@
 flask
 flask-cors
 pillow
+numpy
 requests
 reportlab
 openai
