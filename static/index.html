@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SolarQuote</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-height:100vh}
+.header{background:#1a3a5c;padding:14px 20px;display:flex;align-items:center;gap:10px}
+.header h1{font-size:18px;font-weight:700}
+.step{display:none;padding:20px}
+.step.active{display:block}
+.step-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#64b5f6;margin-bottom:6px}
+.step-title{font-size:20px;font-weight:700;margin-bottom:16px}
+.upload-zone{border:2px dashed #1a3a5c;border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;background:#111e2b}
+.upload-zone .icon{font-size:48px;margin-bottom:12px}
+.upload-zone p{color:#aaa;font-size:14px}
+#photo-input{display:none}
+.canvas-wrap{position:relative;width:100%;border-radius:12px;overflow:hidden;touch-action:none}
+#roof-img{width:100%;display:block}
+#draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none}
+.hint{background:rgba(26,58,92,0.95);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;line-height:1.6}
+.ig{margin-bottom:14px}
+.ig label{display:block;font-size:11px;color:#64b5f6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;font-weight:600}
+.ig input,.ig select{width:100%;background:#111e2b;border:1px solid #1a3a5c;border-radius:8px;padding:11px 13px;color:#fff;font-size:15px;outline:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn-g{background:linear-gradient(135deg,#1a6b3a,#22a855);color:#fff}
+.btn-b{background:#1a3a5c;color:#fff}
+.btn-r{background:#3a1a1a;color:#ff6b6b;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;margin-right:6px;margin-top:8px;border:none}
+.prog{display:flex;gap:6px;padding:0 20px 16px}
+.ps{flex:1;height:4px;border-radius:2px;background:#1a3a5c}
+.ps.done{background:#22a855}
+.ps.active{background:#64b5f6}
+.loading{text-align:center;padding:60px 20px}
+.spin{width:60px;height:60px;border:4px solid #1a3a5c;border-top-color:#22a855;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ls{font-size:14px;color:#aaa;padding:8px 0;transition:color 0.3s}
+.ls.active{color:#22a855;font-weight:600}
+.res-img{width:100%;border-radius:12px;margin-bottom:16px;display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.card{background:#111e2b;border:1px solid #1a3a5c;border-radius:10px;padding:14px;text-align:center}
+.val{font-size:20px;font-weight:700;color:#22a855}
+.lbl{font-size:11px;color:#aaa;margin-top:2px}
+.wa{width:100%;background:#25D366;color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="header"><span>☀</span><h1>SolarQuote</h1></div>
+<div class="prog">
+  <div class="ps active" id="p1"></div>
+  <div class="ps" id="p2"></div>
+  <div class="ps" id="p3"></div>
+  <div class="ps" id="p4"></div>
+</div>
+
+<div class="step active" id="s1">
+  <div class="step-label">Step 1 of 4</div>
+  <div class="step-title">Upload Roof Photo</div>
+  <div class="upload-zone" onclick="document.getElementById('photo-input').click()">
+    <div class="icon">📸</div>
+    <p>Tap to take photo or choose from gallery</p>
+    <p style="margin-top:8px;font-size:12px;color:#555">Best: standing at roof edge facing inward</p>
+  </div>
+  <input type="file" id="photo-input" accept="image/*" capture="environment">
+  <div id="preview-wrap" style="display:none;margin-top:16px">
+    <img id="preview-img" style="width:100%;border-radius:12px;display:block">
+    <button class="btn btn-g" onclick="go(2)">Use This Photo</button>
+    <button class="btn btn-b" onclick="retake()">Retake Photo</button>
+  </div>
+</div>
+
+<div class="step" id="s2">
+  <div class="step-label">Step 2 of 4</div>
+  <div class="step-title">Mark Installation Area</div>
+  <div class="hint">Tap corners of where panels will go. Tap the first orange dot again to close the shape.</div>
+  <div class="canvas-wrap">
+    <img id="roof-img" src="" alt="">
+    <canvas id="draw-canvas"></canvas>
+  </div>
+  <div style="margin-top:10px">
+    <button class="btn-r" onclick="clearPoly()">Clear</button>
+    <button class="btn-r" onclick="undo()">Undo</button>
+  </div>
+  <div id="poly-status" style="font-size:13px;color:#aaa;margin-top:10px;text-align:center">Tap on the photo to mark corners</div>
+  <button class="btn btn-g" id="s2next" onclick="go(3)" disabled style="opacity:0.4;cursor:not-allowed">Confirm Area</button>
+  <button class="btn btn-b" onclick="go(1)">Back</button>
+</div>
+
+<div class="step" id="s3">
+  <div class="step-label">Step 3 of 4</div>
+  <div class="step-title">System Details</div>
+  <div class="row2">
+    <div class="ig"><label>Number of Panels</label><input type="number" id="panels" value="10" min="1" max="60"></div>
+    <div class="ig"><label>System Size kW</label><input type="number" id="kw" value="4" min="1" max="20" step="0.5"></div>
+  </div>
+  <div class="ig"><label>Roof Type</label>
+    <select id="roof">
+      <option value="flat_rcc">Flat RCC Concrete</option>
+      <option value="sloped_tile">Sloped Tile Roof</option>
+      <option value="metal_sheet">Metal Sheet Roof</option>
+      <option value="flat_terrace">Flat Terrace</option>
+    </select>
+  </div>
+  <div class="ig"><label>Mounting Type</label>
+    <select id="mount">
+      <option value="ground_mount">Elevated Mount 17 degree tilt</option>
+      <option value="flush_mount">Flush Mount low profile</option>
+      <option value="ballast">Ballast Mount no drilling</option>
+    </select>
+  </div>
+  <div class="row2">
+    <div class="ig"><label>Homeowner Name</label><input type="text" id="hname" placeholder="Mr. Sharma"></div>
+    <div class="ig"><label>Monthly Bill Rs</label><input type="number" id="bill" value="3000"></div>
+  </div>
+  <div class="ig"><label>Your Company Name</label><input type="text" id="iname" placeholder="Ravi Solar Raipur"></div>
+  <button class="btn btn-g" onclick="generate()">Generate Instant Quote</button>
+  <button class="btn btn-b" onclick="go(2)">Back</button>
+</div>
+
+<div class="step" id="s4">
+  <div class="loading">
+    <div class="spin"></div>
+    <h2 style="font-size:18px;margin-bottom:8px">Generating Your Quote</h2>
+    <p style="color:#aaa;font-size:14px;margin-bottom:20px">AI is placing solar panels on your roof</p>
+    <div style="text-align:left;max-width:260px;margin:0 auto">
+      <div class="ls active" id="ls1">📐 Analysing roof area...</div>
+      <div class="ls" id="ls2">🤖 AI generating solar image...</div>
+      <div class="ls" id="ls3">💰 Calculating subsidy and savings...</div>
+      <div class="ls" id="ls4">📄 Creating PDF proposal...</div>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="s5">
+  <div class="step-label">Quote Ready</div>
+  <div class="step-title">Solar Proposal</div>
+  <img id="result-img" class="res-img" src="" alt="">
+  <div class="grid2">
+    <div class="card"><div class="val" id="r-kw">-</div><div class="lbl">System Size</div></div>
+    <div class="card"><div class="val" id="r-cost">-</div><div class="lbl">Net Cost</div></div>
+    <div class="card"><div class="val" id="r-save">-</div><div class="lbl">Annual Savings</div></div>
+    <div class="card"><div class="val" id="r-pay">-</div><div class="lbl">Payback Period</div></div>
+  </div>
+  <button class="btn btn-g" onclick="downloadPDF()">Download PDF Proposal</button>
+  <button class="wa" onclick="shareWA()">Share via WhatsApp</button>
+  <button class="btn btn-b" onclick="reset()">New Quote</button>
+</div>
+
+<script>
+const S={url:null,blob:null,poly:[],closed:false,fin:{},pdfUrl:null,imgUrl:null};
+let canvas,ctx,sc={x:1,y:1};
+
+function compress(file,cb){
+  const r=new FileReader();
+  r.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      const MAX=800;
+      const ratio=Math.min(MAX/img.width,MAX/img.height,1);
+      const w=Math.round(img.width*ratio);
+      const h=Math.round(img.height*ratio);
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(function(blob){cb(blob,URL.createObjectURL(blob));},'image/jpeg',0.8);
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function go(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  for(let i=1;i<=4;i++){
+    const e=document.getElementById('p'+i);
+    e.className='ps'+(i<n?' done':i===n?' active':'');
+  }
+  if(n===2)initCanvas();
+}
+
+document.getElementById('photo-input').addEventListener('change',function(e){
+  const f=e.target.files[0];if(!f)return;
+  compress(f,function(blob,url){
+    S.blob=blob;S.url=url;
+    document.getElementById('preview-img').src=url;
+    document.getElementById('preview-wrap').style.display='block';
+    document.querySelector('.upload-zone').style.display='none';
+  });
+});
+
+function retake(){
+  S.blob=null;S.url=null;
+  document.getElementById('preview-wrap').style.display='none';
+  document.querySelector('.upload-zone').style.display='block';
+  document.getElementById('photo-input').value='';
+}
+
+function initCanvas(){
+  const img=document.getElementById('roof-img');
+  canvas=document.getElementById('draw-canvas');
+  ctx=canvas.getContext('2d');
+  img.src=S.url;
+  S.poly=[];S.closed=false;
+  img.onload=function(){
+    canvas.width=img.naturalWidth;
+    canvas.height=img.naturalHeight;
+    canvas.style.width=img.offsetWidth+'px';
+    canvas.style.height=img.offsetHeight+'px';
+    sc.x=img.naturalWidth/img.offsetWidth;
+    sc.y=img.naturalHeight/img.offsetHeight;
+  };
+  canvas.ontouchstart=tap;
+  canvas.onclick=tap;
+}
+
+function tap(e){
+  e.preventDefault();if(S.closed)return;
+  const r=canvas.getBoundingClientRect();
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  const x=(cx-r.left)*sc.x,y=(cy-r.top)*sc.y;
+  if(S.poly.length>=3){
+    const f=S.poly[0];
+    if(Math.sqrt((x-f.x)**2+(y-f.y)**2)<35*sc.x){
+      S.closed=true;redraw();enableNext();return;
+    }
+  }
+  S.poly.push({x,y});redraw();updateSt();
+}
+
+function redraw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const p=S.poly;if(!p.length)return;
+  if(S.closed){
+    ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);
+    p.forEach(pt=>ctx.lineTo(pt.x,pt.y));ctx.closePath();
+    ctx.fillStyle='rgba(34,168,85,0.25)';ctx.fill();
+  }
+  ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);
+  p.forEach(pt=>ctx.lineTo(pt.x,pt.y));
+  if(S.closed)ctx.closePath();
+  ctx.strokeStyle='#22a855';ctx.lineWidth=3*sc.x;
+  ctx.setLineDash(S.closed?[]:[8*sc.x,4*sc.x]);ctx.stroke();
+  p.forEach(function(pt,i){
+    ctx.beginPath();ctx.arc(pt.x,pt.y,10*sc.x,0,Math.PI*2);
+    ctx.fillStyle=i===0?'#ff6b35':'#22a855';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2*sc.x;ctx.setLineDash([]);ctx.stroke();
+  });
+}
+
+function updateSt(){
+  const n=S.poly.length,el=document.getElementById('poly-status');
+  el.style.color=n>=3?'#22a855':'#aaa';
+  el.textContent=n===0?'Tap on the photo to mark corners':
+    n<3?n+' points - add '+(3-n)+' more':
+    n+' points - tap orange dot to close';
+}
+
+function enableNext(){
+  const b=document.getElementById('s2next');
+  b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';
+  document.getElementById('poly-status').textContent='Area confirmed - tap Confirm';
+  document.getElementById('poly-status').style.color='#22a855';
+}
+
+function clearPoly(){
+  S.poly=[];S.closed=false;
+  if(ctx)ctx.clearRect(0,0,canvas.width,canvas.height);
+  const b=document.getElementById('s2next');
+  b.disabled=true;b.style.opacity='0.4';b.style.cursor='not-allowed';
+  updateSt();
+}
+
+function undo(){
+  if(S.closed){S.closed=false;const b=document.getElementById('s2next');b.disabled=true;b.style.opacity='0.4';}
+  S.poly.pop();redraw();updateSt();
+}
+
+function fmt(n){
+  if(n>=100000)return(n/100000).toFixed(1)+'L';
+  if(n>=1000)return(n/1000).toFixed(0)+'K';
+  return String(n);
+}
+
+function animateSteps(){
+  const ids=['ls1','ls2','ls3','ls4'];
+  const delays=[0,5000,12000,18000];
+  ids.forEach(function(id,i){
+    setTimeout(function(){
+      ids.forEach(function(x){document.getElementById(x).classList.remove('active');});
+      document.getElementById(id).classList.add('active');
+    },delays[i]);
+  });
+}
+
+async function generate(){
+  const panels=parseInt(document.getElementById('panels').value)||10;
+  const kw=parseFloat(document.getElementById('kw').value)||4;
+  const bill=parseInt(document.getElementById('bill').value)||3000;
+  const roof=document.getElementById('roof').value;
+  const mount=document.getElementById('mount').value;
+  const hname=document.getElementById('hname').value||'Homeowner';
+  const iname=document.getElementById('iname').value||'Solar Installer';
+  go(4);
+  animateSteps();
+  const fd=new FormData();
+  fd.append('photo',S.blob,'roof.jpg');
+  fd.append('polygon',JSON.stringify(S.poly));
+  fd.append('panel_count',panels);
+  fd.append('system_kw',kw);
+  fd.append('roof_type',roof);
+  fd.append('mounting_type',mount);
+  fd.append('homeowner_name',hname);
+  fd.append('monthly_bill',bill);
+  fd.append('installer_name',iname);
+  try{
+    const res=await fetch('/api/generate-quote',{method:'POST',body:fd});
+    if(!res.ok){const err=await res.json();throw new Error(err.error||'Server error');}
+    const data=await res.json();
+    S.pdfUrl=data.pdf_url;
+    S.imgUrl=data.image_url;
+    S.fin=data.financials;
+    showResult(data);
+  }catch(err){
+    alert('Error: '+err.message+'\n\nPlease try again.');
+    go(3);
+  }
+}
+
+function showResult(data){
+  const f=data.financials;
+  document.getElementById('result-img').src=data.image_url;
+  document.getElementById('r-kw').textContent=f.system_kw+' kW';
+  document.getElementById('r-cost').textContent='Rs '+fmt(f.net_cost);
+  document.getElementById('r-save').textContent='Rs '+fmt(f.annual_savings)+'/yr';
+  document.getElementById('r-pay').textContent=f.payback_years+' yrs';
+  go(5);
+}
+
+function downloadPDF(){
+  if(S.pdfUrl)window.open(S.pdfUrl,'_blank');
+}
+
+function shareWA(){
+  const f=S.fin;
+  const hw=document.getElementById('hname').value||'Homeowner';
+  const msg=encodeURIComponent(
+    'Solar Proposal for '+hw+'\n\n'+
+    'System: '+f.system_kw+' kW | '+f.panel_count+' Panels\n'+
+    'Net Cost: Rs '+fmt(f.net_cost)+' after subsidy\n'+
+    'Annual Savings: Rs '+fmt(f.annual_savings)+'\n'+
+    'Payback: '+f.payback_years+' years\n\n'+
+    'Generated by SolarQuote'
+  );
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+
+function reset(){
+  S.url=null;S.blob=null;S.poly=[];S.closed=false;
+  document.querySelector('.upload-zone').style.display='block';
+  document.getElementById('preview-wrap').style.display='none';
+  document.getElementById('photo-input').value='';
+  go(1);
+}
+</script>
+</body>
+</html>
