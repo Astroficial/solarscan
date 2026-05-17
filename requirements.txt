@@ -5,5 +5,3 @@ requests
 reportlab
 openai
 gunicorn
-opencv-python-headless
-numpy
