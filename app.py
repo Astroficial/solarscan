@@ -98,68 +98,394 @@ def calculate_financials(panel_count, system_kw, monthly_bill):
         "savings_25yr":   round(savings_25yr),
     }
 
-def generate_pdf(image_path, fin, installer, homeowner, output_path):
+def generate_pdf(image_path, fin, installer, homeowner, output_path,
+                 installer_phone="", installer_email="",
+                 panel_brand="Waaree / Adani Solar",
+                 inverter_brand="Solis / Growatt"):
+
     doc    = SimpleDocTemplate(output_path, pagesize=A4,
                 rightMargin=1.5*cm, leftMargin=1.5*cm,
                 topMargin=1.5*cm,   bottomMargin=1.5*cm)
     styles = getSampleStyleSheet()
     story  = []
-    story.append(Paragraph(
-        "<b>Solar Installation Proposal</b>",
-        ParagraphStyle("H", parent=styles["Title"], fontSize=22,
-            textColor=colors.HexColor("#1a3a5c"),
-            alignment=TA_CENTER, spaceAfter=4)
-    ))
-    story.append(Paragraph(
-        f"{installer}  |  Prepared for: {homeowner}  |  {datetime.today().strftime('%d %b %Y')}",
-        ParagraphStyle("S", parent=styles["Normal"], fontSize=10,
-            textColor=colors.grey, alignment=TA_CENTER, spaceAfter=8)
-    ))
-    story.append(HRFlowable(width="100%", thickness=2,
-        color=colors.HexColor("#1a3a5c")))
+
+    # ── COLOURS ───────────────────────────────────────────────────────────────
+    DARK_BLUE  = colors.HexColor("#1a3a5c")
+    GREEN      = colors.HexColor("#2d6a2d")
+    LIGHT_BLUE = colors.HexColor("#EBF3FB")
+    WHITE      = colors.white
+
+    def h1(text):
+        return Paragraph(f"<b>{text}</b>",
+            ParagraphStyle("h1", parent=styles["Title"], fontSize=22,
+                textColor=DARK_BLUE, alignment=TA_CENTER, spaceAfter=4))
+
+    def h2(text):
+        return Paragraph(f"<b>{text}</b>",
+            ParagraphStyle("h2", parent=styles["Normal"], fontSize=14,
+                textColor=DARK_BLUE, spaceAfter=6, spaceBefore=10))
+
+    def body(text):
+        return Paragraph(text,
+            ParagraphStyle("body", parent=styles["Normal"], fontSize=10,
+                textColor=colors.HexColor("#333333"), spaceAfter=6,
+                leading=16))
+
+    def small(text):
+        return Paragraph(text,
+            ParagraphStyle("small", parent=styles["Normal"], fontSize=8,
+                textColor=colors.grey, alignment=TA_CENTER))
+
+    def section_header(text, bg=DARK_BLUE):
+        t = Table([[text]], colWidths=[17*cm])
+        t.setStyle(TableStyle([
+            ("BACKGROUND",    (0,0), (-1,-1), bg),
+            ("TEXTCOLOR",     (0,0), (-1,-1), WHITE),
+            ("FONTNAME",      (0,0), (-1,-1), "Helvetica-Bold"),
+            ("FONTSIZE",      (0,0), (-1,-1), 12),
+            ("ALIGN",         (0,0), (-1,-1), "CENTER"),
+            ("TOPPADDING",    (0,0), (-1,-1), 8),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+        ]))
+        return t
+
+    today = datetime.today().strftime("%d %b %Y")
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 1 — COVER PAGE
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(Spacer(1, 1*cm))
+    story.append(h1("☀  Solar Energy Proposal"))
     story.append(Spacer(1, 0.3*cm))
+    story.append(HRFlowable(width="100%", thickness=3, color=DARK_BLUE))
+    story.append(Spacer(1, 0.5*cm))
+
+    cover_data = [
+        ["Prepared For",  homeowner],
+        ["Prepared By",   installer],
+        ["Contact",       installer_phone or "—"],
+        ["Email",         installer_email or "—"],
+        ["Proposal Date", today],
+        ["Valid Until",   (datetime.today().replace(day=28)).strftime("%d %b %Y")],
+    ]
+    ct = Table(cover_data, colWidths=[5*cm, 12*cm])
+    ct.setStyle(TableStyle([
+        ("FONTNAME",      (0,0), (0,-1), "Helvetica-Bold"),
+        ("FONTSIZE",      (0,0), (-1,-1), 11),
+        ("TEXTCOLOR",     (0,0), (0,-1), DARK_BLUE),
+        ("ROWBACKGROUNDS",(0,0), (-1,-1), [LIGHT_BLUE, WHITE]),
+        ("TOPPADDING",    (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 7),
+        ("GRID",          (0,0), (-1,-1), 0.3, colors.HexColor("#CCDDEE")),
+    ]))
+    story.append(ct)
+    story.append(Spacer(1, 0.5*cm))
+    story.append(small(
+        "This proposal is valid for 30 days from the date of issue. "
+        "Prices are subject to change after the validity period."
+    ))
+    story.append(PageBreak())
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 2 — WELCOME LETTER
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(h2("Dear " + homeowner + ","))
+    story.append(Spacer(1, 0.3*cm))
+    story.append(body(
+        f"Thank you for considering <b>{installer}</b> for your solar installation. "
+        f"We are delighted to present this customised solar energy proposal, "
+        f"designed specifically for your property."
+    ))
+    story.append(body(
+        f"Based on our assessment, we recommend a <b>{fin['system_kw']} kW on-grid solar system</b> "
+        f"consisting of <b>{fin['panel_count']} high-efficiency solar panels</b>. "
+        f"This system is projected to generate approximately <b>{fin['yearly_kwh']:,} kWh of clean electricity per year</b>, "
+        f"significantly reducing your dependence on grid power."
+    ))
+    story.append(body(
+        f"With the <b>PM Surya Ghar Muft Bijli Yojana</b> subsidy of "
+        f"<b>Rs {fin['subsidy']:,}</b>, your net investment comes down to just "
+        f"<b>Rs {fin['net_cost']:,}</b>. At your current electricity consumption, "
+        f"you will recover this investment in approximately <b>{fin['payback_years']} years</b> "
+        f"and save an estimated <b>Rs {fin['savings_25yr']:,} over 25 years</b>."
+    ))
+    story.append(body(
+        "We are committed to delivering a safe, high-quality installation using only "
+        "certified components from leading Indian manufacturers. Our team handles "
+        "everything from design and installation to subsidy paperwork and net metering."
+    ))
+    story.append(Spacer(1, 0.5*cm))
+    story.append(body("Warm regards,"))
+    story.append(Spacer(1, 0.2*cm))
+    story.append(body(f"<b>{installer}</b>"))
+    story.append(body(f"{installer_phone}"))
+    story.append(PageBreak())
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 3 — SYSTEM OVERVIEW + AI IMAGE
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(section_header("System Overview & Projected Savings"))
+    story.append(Spacer(1, 0.4*cm))
     story.append(RLImage(image_path, width=17*cm, height=10*cm))
     story.append(Spacer(1, 0.4*cm))
-    story.append(Paragraph(
-        f"<b>Proposed: {fin['system_kw']} kW  |  {fin['panel_count']} Panels  |  {fin['yearly_kwh']:,} kWh/year</b>",
-        ParagraphStyle("SL", parent=styles["Normal"], fontSize=12,
-            textColor=colors.HexColor("#1a3a5c"),
-            alignment=TA_CENTER, spaceAfter=10)
-    ))
-    data = [
-        ["Financial Summary",          ""],
-        ["Total System Cost",          f"Rs {fin['total_cost']:,}"],
-        ["PM Surya Ghar Subsidy",      f"- Rs {fin['subsidy']:,}"],
-        ["Your Net Investment",        f"Rs {fin['net_cost']:,}"],
-        ["Annual Electricity Savings", f"Rs {fin['annual_savings']:,}"],
-        ["Payback Period",             f"{fin['payback_years']} years"],
-        ["25-Year Net Savings",        f"Rs {fin['savings_25yr']:,}"],
+
+    # Big bold savings numbers
+    savings_data = [
+        [f"{fin['system_kw']} kW",
+         f"{fin['panel_count']} Panels",
+         f"{fin['yearly_kwh']:,} kWh/yr"],
+        ["System Size", "Panel Count", "Annual Generation"],
+        [f"Rs {fin['net_cost']:,}",
+         f"Rs {fin['annual_savings']:,}/yr",
+         f"{fin['payback_years']} Years"],
+        ["Net Investment", "Annual Savings", "Payback Period"],
     ]
-    t = Table(data, colWidths=[10*cm, 7*cm])
-    t.setStyle(TableStyle([
-        ("BACKGROUND",     (0,0), (-1,0), colors.HexColor("#1a3a5c")),
-        ("TEXTCOLOR",      (0,0), (-1,0), colors.white),
+    st = Table(savings_data, colWidths=[5.67*cm, 5.67*cm, 5.67*cm])
+    st.setStyle(TableStyle([
+        ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTNAME",      (0,2), (-1,2), "Helvetica-Bold"),
+        ("FONTSIZE",      (0,0), (-1,0), 16),
+        ("FONTSIZE",      (0,2), (-1,2), 16),
+        ("FONTSIZE",      (0,1), (-1,1), 9),
+        ("FONTSIZE",      (0,3), (-1,3), 9),
+        ("TEXTCOLOR",     (0,0), (-1,0), DARK_BLUE),
+        ("TEXTCOLOR",     (0,2), (-1,2), GREEN),
+        ("TEXTCOLOR",     (0,1), (-1,1), colors.grey),
+        ("TEXTCOLOR",     (0,3), (-1,3), colors.grey),
+        ("ALIGN",         (0,0), (-1,-1), "CENTER"),
+        ("TOPPADDING",    (0,0), (-1,-1), 4),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+        ("LINEBELOW",     (0,1), (-1,1), 0.5, colors.HexColor("#CCDDEE")),
+    ]))
+    story.append(st)
+    story.append(PageBreak())
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 4 — FINANCIAL DETAILS
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(section_header("Detailed Financial Analysis"))
+    story.append(Spacer(1, 0.4*cm))
+
+    fin_data = [
+        ["Financial Summary",              ""],
+        ["Total System Cost",              f"Rs {fin['total_cost']:,}"],
+        ["PM Surya Ghar Subsidy",          f"- Rs {fin['subsidy']:,}"],
+        ["Your Net Investment",            f"Rs {fin['net_cost']:,}"],
+        ["Annual Energy Generation",       f"{fin['yearly_kwh']:,} kWh"],
+        ["Annual Electricity Savings",     f"Rs {fin['annual_savings']:,}"],
+        ["Payback Period",                 f"{fin['payback_years']} years"],
+        ["25-Year Gross Savings",          f"Rs {fin['savings_25yr']:,}"],
+        ["CO₂ Offset Per Year",            f"{round(fin['yearly_kwh']*0.82/1000,1)} tonnes"],
+    ]
+    ft = Table(fin_data, colWidths=[10*cm, 7*cm])
+    ft.setStyle(TableStyle([
+        ("BACKGROUND",     (0,0), (-1,0), DARK_BLUE),
+        ("TEXTCOLOR",      (0,0), (-1,0), WHITE),
         ("SPAN",           (0,0), (-1,0)),
         ("ALIGN",          (0,0), (-1,0), "CENTER"),
         ("FONTNAME",       (0,0), (-1,0), "Helvetica-Bold"),
-        ("FONTSIZE",       (0,0), (-1,0), 11),
-        ("ROWBACKGROUNDS", (0,1), (-1,-1),
-            [colors.HexColor("#EBF3FB"), colors.white]),
+        ("FONTSIZE",       (0,0), (-1,0), 12),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [LIGHT_BLUE, WHITE]),
         ("FONTSIZE",       (0,1), (-1,-1), 10),
+        ("FONTNAME",       (0,3), (0,3),  "Helvetica-Bold"),
+        ("TEXTCOLOR",      (1,3), (1,3),  GREEN),
         ("ALIGN",          (1,1), (1,-1), "RIGHT"),
         ("GRID",           (0,0), (-1,-1), 0.3, colors.HexColor("#CCDDEE")),
-        ("TOPPADDING",     (0,0), (-1,-1), 6),
-        ("BOTTOMPADDING",  (0,0), (-1,-1), 6),
+        ("TOPPADDING",     (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING",  (0,0), (-1,-1), 7),
     ]))
-    story.append(t)
-    story.append(Spacer(1, 0.3*cm))
-    story.append(Paragraph(
-        "Proposal based on site photos and AI-assisted design. "
-        "Final specifications confirmed at engineering survey. "
-        "Subsidy subject to PM Surya Ghar eligibility and DISCOM approval.",
-        ParagraphStyle("D", parent=styles["Normal"],
-            fontSize=7, textColor=colors.grey, alignment=TA_CENTER)
+    story.append(ft)
+    story.append(Spacer(1, 0.5*cm))
+
+    # Payment milestones
+    story.append(h2("Payment Schedule"))
+    pay_data = [
+        ["Milestone",                           "Percentage", "Amount"],
+        ["Advance (Booking Confirmation)",      "20%",        f"Rs {round(fin['net_cost']*0.20):,}"],
+        ["Before Material Delivery",            "70%",        f"Rs {round(fin['net_cost']*0.70):,}"],
+        ["After Commissioning & Handover",      "10%",        f"Rs {round(fin['net_cost']*0.10):,}"],
+        ["Total",                               "100%",       f"Rs {fin['net_cost']:,}"],
+    ]
+    pt = Table(pay_data, colWidths=[9*cm, 3*cm, 5*cm])
+    pt.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,0), DARK_BLUE),
+        ("TEXTCOLOR",     (0,0), (-1,0), WHITE),
+        ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE",      (0,0), (-1,0), 10),
+        ("FONTNAME",      (0,4), (-1,4), "Helvetica-Bold"),
+        ("BACKGROUND",    (0,4), (-1,4), LIGHT_BLUE),
+        ("ROWBACKGROUNDS",(0,1), (-1,3), [WHITE, LIGHT_BLUE]),
+        ("FONTSIZE",      (0,1), (-1,-1), 10),
+        ("ALIGN",         (1,0), (-1,-1), "CENTER"),
+        ("GRID",          (0,0), (-1,-1), 0.3, colors.HexColor("#CCDDEE")),
+        ("TOPPADDING",    (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 7),
+    ]))
+    story.append(pt)
+    story.append(PageBreak())
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 5 — BILL OF MATERIALS
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(section_header("Bill of Materials (BOM)"))
+    story.append(Spacer(1, 0.4*cm))
+
+    bom_data = [
+        ["Component",       "Specification",                          "Qty",    "Warranty"],
+        ["Solar Panels",
+         f"{panel_brand} — {400}W Mono PERC Half-Cut",
+         str(fin['panel_count']),
+         "25 yr performance\n10 yr product"],
+        ["Solar Inverter",
+         f"{inverter_brand} — {fin['system_kw']} kW String Inverter\nWi-Fi monitoring included",
+         "1",
+         "10 years"],
+        ["Mounting Structure",
+         "Hot-dip galvanised steel 80 micron\nAdjustable tilt — MNRE approved",
+         "1 set",
+         "10 years"],
+        ["DC Cables",
+         "4mm² UV resistant solar cable\nMC4 connectors included",
+         "As required",
+         "10 years"],
+        ["AC Distribution Box",
+         "IP65 weatherproof enclosure\nWith SPD and MCB protection",
+         "1",
+         "2 years"],
+        ["Net Meter",
+         "Bidirectional energy meter\nDISCOM approved model",
+         "1",
+         "As per DISCOM"],
+    ]
+    bt = Table(bom_data, colWidths=[3.5*cm, 7.5*cm, 2*cm, 4*cm])
+    bt.setStyle(TableStyle([
+        ("BACKGROUND",     (0,0), (-1,0), DARK_BLUE),
+        ("TEXTCOLOR",      (0,0), (-1,0), WHITE),
+        ("FONTNAME",       (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE",       (0,0), (-1,0), 10),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [LIGHT_BLUE, WHITE]),
+        ("FONTSIZE",       (0,1), (-1,-1), 9),
+        ("FONTNAME",       (0,1), (0,-1), "Helvetica-Bold"),
+        ("VALIGN",         (0,0), (-1,-1), "MIDDLE"),
+        ("GRID",           (0,0), (-1,-1), 0.3, colors.HexColor("#CCDDEE")),
+        ("TOPPADDING",     (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING",  (0,0), (-1,-1), 7),
+    ]))
+    story.append(bt)
+    story.append(PageBreak())
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 6 — TERMS AND CONDITIONS
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(section_header("Terms and Conditions"))
+    story.append(Spacer(1, 0.4*cm))
+
+    tcs = [
+        ("Scope of Work",
+         "Supply, installation, testing and commissioning of the solar PV system as per "
+         "the specifications mentioned in this proposal. Includes civil work for mounting "
+         "structure and DC/AC cabling up to the main distribution board."),
+        ("Exclusions",
+         "Net metering application fees (paid to DISCOM), electrical upgrades to existing "
+         "wiring beyond the scope of solar installation, and any structural reinforcement "
+         "of the roof are not included unless explicitly stated."),
+        ("Subsidy",
+         "PM Surya Ghar subsidy is subject to government approval and DISCOM registration. "
+         "Installer will assist with documentation but cannot guarantee subsidy timelines."),
+        ("Warranty",
+         "All equipment warranties are as per manufacturer terms. Installation workmanship "
+         "is warranted for 1 year from commissioning date."),
+        ("Site Conditions",
+         "This proposal is based on the site assessment conducted. Any changes to roof "
+         "structure, shading, or electrical conditions discovered during installation "
+         "may affect the final system design and cost."),
+        ("Validity",
+         "This proposal is valid for 30 days from the date of issue. "
+         "Prices are subject to revision after the validity period due to "
+         "market fluctuations in panel and inverter pricing."),
+        ("Dispute Resolution",
+         "Any disputes arising from this contract shall be subject to the jurisdiction "
+         "of courts in the city of installation."),
+    ]
+
+    for title, text in tcs:
+        story.append(body(f"<b>{title}:</b> {text}"))
+        story.append(Spacer(1, 0.1*cm))
+
+    story.append(PageBreak())
+
+    # ════════════════════════════════════════════════════════════════════════
+    # PAGE 7 — THANK YOU + ACCEPTANCE
+    # ════════════════════════════════════════════════════════════════════════
+    story.append(section_header("Thank You — Next Steps", bg=GREEN))
+    story.append(Spacer(1, 0.5*cm))
+    story.append(body(
+        f"Dear <b>{homeowner}</b>, thank you for this opportunity. "
+        "We look forward to powering your home with clean, affordable solar energy."
     ))
+    story.append(Spacer(1, 0.3*cm))
+
+    steps_data = [
+        ["Step", "Action",                              "Timeline"],
+        ["1",    "Pay 20% advance to confirm booking",  "Today"],
+        ["2",    "Site survey and final design",        "Within 3 days"],
+        ["3",    "Material procurement and delivery",   "7-10 days"],
+        ["4",    "Installation and testing",            "1-2 days"],
+        ["5",    "Net meter application filed",         "Post installation"],
+        ["6",    "Subsidy disbursement",                "30-60 days"],
+    ]
+    nst = Table(steps_data, colWidths=[1.5*cm, 11*cm, 4.5*cm])
+    nst.setStyle(TableStyle([
+        ("BACKGROUND",     (0,0), (-1,0), GREEN),
+        ("TEXTCOLOR",      (0,0), (-1,0), WHITE),
+        ("FONTNAME",       (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE",       (0,0), (-1,0), 10),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1),
+         [colors.HexColor("#EBF5EB"), WHITE]),
+        ("FONTSIZE",       (0,1), (-1,-1), 10),
+        ("ALIGN",          (0,0), (-1,-1), "CENTER"),
+        ("GRID",           (0,0), (-1,-1), 0.3, colors.HexColor("#CCEECC")),
+        ("TOPPADDING",     (0,0), (-1,-1), 8),
+        ("BOTTOMPADDING",  (0,0), (-1,-1), 8),
+    ]))
+    story.append(nst)
+    story.append(Spacer(1, 0.8*cm))
+
+    # Signature block
+    story.append(h2("Acceptance"))
+    story.append(body(
+        "By signing below, you confirm that you have read, understood, and agree "
+        "to the terms of this proposal."
+    ))
+    story.append(Spacer(1, 0.5*cm))
+
+    sig_data = [
+        ["Customer Signature",          "Installer Representative"],
+        ["",                            ""],
+        [f"Name: {homeowner}",          f"Name: {installer}"],
+        ["Date: _______________",       f"Date: {today}"],
+    ]
+    sigt = Table(sig_data, colWidths=[8.5*cm, 8.5*cm])
+    sigt.setStyle(TableStyle([
+        ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE",      (0,0), (-1,-1), 10),
+        ("TEXTCOLOR",     (0,0), (-1,0), DARK_BLUE),
+        ("ROWHEIGHTS",    {1: 40}),
+        ("BOX",           (0,0), (0,-1), 0.5, colors.grey),
+        ("BOX",           (1,0), (1,-1), 0.5, colors.grey),
+        ("TOPPADDING",    (0,0), (-1,-1), 6),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 6),
+        ("LEFTPADDING",   (0,0), (-1,-1), 8),
+    ]))
+    story.append(sigt)
+    story.append(Spacer(1, 0.5*cm))
+    story.append(HRFlowable(width="100%", thickness=1, color=DARK_BLUE))
+    story.append(Spacer(1, 0.2*cm))
+    story.append(small(
+        f"{installer}  |  {installer_phone}  |  {installer_email}  |  "
+        "Powered by SolarQuote"
+    ))
+
     doc.build(story)
     return output_path
 
@@ -213,7 +539,13 @@ def generate_quote():
 
         fin      = calculate_financials(panel_count, system_kw, monthly_bill)
         pdf_path = os.path.join(job_dir, "proposal.pdf")
-        generate_pdf(result_path, fin, installer, homeowner, pdf_path)
+        generate_pdf(
+    result_path, fin, installer, homeowner, pdf_path,
+    installer_phone=request.form.get("installer_phone", ""),
+    installer_email=request.form.get("installer_email", ""),
+    panel_brand=request.form.get("panel_brand", "Waaree / Adani Solar"),
+    inverter_brand=request.form.get("inverter_brand", "Solis / Growatt"),
+)
 
         return jsonify({
             "job_id":     job_id,
