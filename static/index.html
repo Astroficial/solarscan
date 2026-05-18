@@ -44,10 +44,13 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
 .val{font-size:20px;font-weight:700;color:#22a855}
 .lbl{font-size:11px;color:#aaa;margin-top:2px}
 .wa{width:100%;background:#25D366;color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+.section-divider{border:none;border-top:1px solid #1a3a5c;margin:16px 0}
 </style>
 </head>
 <body>
+
 <div class="header"><span>☀</span><h1>SolarQuote</h1></div>
+
 <div class="prog">
   <div class="ps active" id="p1"></div>
   <div class="ps" id="p2"></div>
@@ -55,6 +58,7 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
   <div class="ps" id="p4"></div>
 </div>
 
+<!-- STEP 1: Upload Photo -->
 <div class="step active" id="s1">
   <div class="step-label">Step 1 of 4</div>
   <div class="step-title">Upload Roof Photo</div>
@@ -71,6 +75,7 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
   </div>
 </div>
 
+<!-- STEP 2: Draw Area -->
 <div class="step" id="s2">
   <div class="step-label">Step 2 of 4</div>
   <div class="step-title">Mark Installation Area</div>
@@ -83,19 +88,33 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
     <button class="btn-r" onclick="clearPoly()">Clear</button>
     <button class="btn-r" onclick="undo()">Undo</button>
   </div>
-  <div id="poly-status" style="font-size:13px;color:#aaa;margin-top:10px;text-align:center">Tap on the photo to mark corners</div>
-  <button class="btn btn-g" id="s2next" onclick="go(3)" disabled style="opacity:0.4;cursor:not-allowed">Confirm Area</button>
+  <div id="poly-status" style="font-size:13px;color:#aaa;margin-top:10px;text-align:center">
+    Tap on the photo to mark corners
+  </div>
+  <button class="btn btn-g" id="s2next" onclick="go(3)" disabled style="opacity:0.4;cursor:not-allowed">
+    Confirm Area
+  </button>
   <button class="btn btn-b" onclick="go(1)">Back</button>
 </div>
 
+<!-- STEP 3: System Details -->
 <div class="step" id="s3">
   <div class="step-label">Step 3 of 4</div>
   <div class="step-title">System Details</div>
+
   <div class="row2">
-    <div class="ig"><label>Number of Panels</label><input type="number" id="panels" value="10" min="1" max="60"></div>
-    <div class="ig"><label>System Size kW</label><input type="number" id="kw" value="4" min="1" max="20" step="0.5"></div>
+    <div class="ig">
+      <label>Number of Panels</label>
+      <input type="number" id="panels" value="10" min="1" max="60">
+    </div>
+    <div class="ig">
+      <label>System Size kW</label>
+      <input type="number" id="kw" value="4" min="1" max="20" step="0.5">
+    </div>
   </div>
-  <div class="ig"><label>Roof Type</label>
+
+  <div class="ig">
+    <label>Roof Type</label>
     <select id="roof">
       <option value="flat_rcc">Flat RCC Concrete</option>
       <option value="sloped_tile">Sloped Tile Roof</option>
@@ -103,22 +122,74 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
       <option value="flat_terrace">Flat Terrace</option>
     </select>
   </div>
-  <div class="ig"><label>Mounting Type</label>
+
+  <div class="ig">
+    <label>Mounting Type</label>
     <select id="mount">
       <option value="ground_mount">Elevated Mount 17 degree tilt</option>
       <option value="flush_mount">Flush Mount low profile</option>
       <option value="ballast">Ballast Mount no drilling</option>
     </select>
   </div>
-  <div class="row2">
-    <div class="ig"><label>Homeowner Name</label><input type="text" id="hname" placeholder="Mr. Sharma"></div>
-    <div class="ig"><label>Monthly Bill Rs</label><input type="number" id="bill" value="3000"></div>
+
+  <div class="ig">
+    <label>Panel Brand</label>
+    <select id="panel_brand">
+      <option value="Waaree Solar">Waaree Solar</option>
+      <option value="Adani Solar">Adani Solar</option>
+      <option value="Vikram Solar">Vikram Solar</option>
+      <option value="Tata Power Solar">Tata Power Solar</option>
+      <option value="Renewsys Solar">Renewsys Solar</option>
+    </select>
   </div>
-  <div class="ig"><label>Your Company Name</label><input type="text" id="iname" placeholder="Ravi Solar Raipur"></div>
-  <button class="btn btn-g" onclick="generate()">Generate Instant Quote</button>
+
+  <div class="ig">
+    <label>Inverter Brand</label>
+    <select id="inverter_brand">
+      <option value="Solis">Solis</option>
+      <option value="Growatt">Growatt</option>
+      <option value="Havells">Havells</option>
+      <option value="SolarEdge">SolarEdge</option>
+      <option value="Fronius">Fronius</option>
+    </select>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="row2">
+    <div class="ig">
+      <label>Homeowner Name</label>
+      <input type="text" id="hname" placeholder="Mr. Sharma">
+    </div>
+    <div class="ig">
+      <label>Monthly Bill Rs</label>
+      <input type="number" id="bill" value="3000">
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="ig">
+    <label>Your Company Name</label>
+    <input type="text" id="iname" placeholder="Ravi Solar Raipur">
+  </div>
+
+  <div class="row2">
+    <div class="ig">
+      <label>Your Phone</label>
+      <input type="text" id="iphone" placeholder="+91 98765 43210">
+    </div>
+    <div class="ig">
+      <label>Your Email</label>
+      <input type="text" id="iemail" placeholder="info@yoursolar.com">
+    </div>
+  </div>
+
+  <button class="btn btn-g" onclick="generate()">⚡ Generate Instant Quote</button>
   <button class="btn btn-b" onclick="go(2)">Back</button>
 </div>
 
+<!-- STEP 4: Loading -->
 <div class="step" id="s4">
   <div class="loading">
     <div class="spin"></div>
@@ -128,24 +199,42 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
       <div class="ls active" id="ls1">📐 Analysing roof area...</div>
       <div class="ls" id="ls2">🤖 AI generating solar image...</div>
       <div class="ls" id="ls3">💰 Calculating subsidy and savings...</div>
-      <div class="ls" id="ls4">📄 Creating PDF proposal...</div>
+      <div class="ls" id="ls4">📄 Creating 7-page PDF proposal...</div>
     </div>
   </div>
 </div>
 
+<!-- STEP 5: Result -->
 <div class="step" id="s5">
-  <div class="step-label">Quote Ready</div>
+  <div class="step-label">✅ Quote Ready</div>
   <div class="step-title">Solar Proposal</div>
   <img id="result-img" class="res-img" src="" alt="">
   <div class="grid2">
-    <div class="card"><div class="val" id="r-kw">-</div><div class="lbl">System Size</div></div>
-    <div class="card"><div class="val" id="r-cost">-</div><div class="lbl">Net Cost</div></div>
-    <div class="card"><div class="val" id="r-save">-</div><div class="lbl">Annual Savings</div></div>
-    <div class="card"><div class="val" id="r-pay">-</div><div class="lbl">Payback Period</div></div>
+    <div class="card">
+      <div class="val" id="r-kw">-</div>
+      <div class="lbl">System Size</div>
+    </div>
+    <div class="card">
+      <div class="val" id="r-cost">-</div>
+      <div class="lbl">Net Cost</div>
+    </div>
+    <div class="card">
+      <div class="val" id="r-save">-</div>
+      <div class="lbl">Annual Savings</div>
+    </div>
+    <div class="card">
+      <div class="val" id="r-pay">-</div>
+      <div class="lbl">Payback Period</div>
+    </div>
   </div>
-  <button class="btn btn-g" onclick="downloadPDF()">Download PDF Proposal</button>
-  <button class="wa" onclick="shareWA()">Share via WhatsApp</button>
-  <button class="btn btn-b" onclick="reset()">New Quote</button>
+  <button class="btn btn-g" onclick="downloadPDF()">📥 Download 7-Page PDF Proposal</button>
+  <button class="wa" onclick="shareWA()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+    Share via WhatsApp
+  </button>
+  <button class="btn btn-b" onclick="reset()">+ New Quote</button>
 </div>
 
 <script>
@@ -275,7 +364,11 @@ function clearPoly(){
 }
 
 function undo(){
-  if(S.closed){S.closed=false;const b=document.getElementById('s2next');b.disabled=true;b.style.opacity='0.4';}
+  if(S.closed){
+    S.closed=false;
+    const b=document.getElementById('s2next');
+    b.disabled=true;b.style.opacity='0.4';
+  }
   S.poly.pop();redraw();updateSt();
 }
 
@@ -290,64 +383,80 @@ function animateSteps(){
   const delays=[0,5000,12000,18000];
   ids.forEach(function(id,i){
     setTimeout(function(){
-      ids.forEach(function(x){document.getElementById(x).classList.remove('active');});
+      ids.forEach(function(x){
+        document.getElementById(x).classList.remove('active');
+      });
       document.getElementById(id).classList.add('active');
     },delays[i]);
   });
 }
 
 async function generate(){
-  const panels=parseInt(document.getElementById('panels').value)||10;
-  const kw=parseFloat(document.getElementById('kw').value)||4;
-  const bill=parseInt(document.getElementById('bill').value)||3000;
-  const roof=document.getElementById('roof').value;
-  const mount=document.getElementById('mount').value;
-  const hname=document.getElementById('hname').value||'Homeowner';
-  const iname=document.getElementById('iname').value||'Solar Installer';
+  const panels   = parseInt(document.getElementById('panels').value)||10;
+  const kw       = parseFloat(document.getElementById('kw').value)||4;
+  const bill     = parseInt(document.getElementById('bill').value)||3000;
+  const roof     = document.getElementById('roof').value;
+  const mount    = document.getElementById('mount').value;
+  const hname    = document.getElementById('hname').value||'Homeowner';
+  const iname    = document.getElementById('iname').value||'Solar Installer';
+  const iphone   = document.getElementById('iphone').value||'';
+  const iemail   = document.getElementById('iemail').value||'';
+  const pbrand   = document.getElementById('panel_brand').value;
+  const ibrand   = document.getElementById('inverter_brand').value;
+
   go(4);
   animateSteps();
-  const fd=new FormData();
-  fd.append('photo',S.blob,'roof.jpg');
-  fd.append('polygon',JSON.stringify(S.poly));
-  fd.append('panel_count',panels);
-  fd.append('system_kw',kw);
-  fd.append('roof_type',roof);
-  fd.append('mounting_type',mount);
-  fd.append('homeowner_name',hname);
-  fd.append('monthly_bill',bill);
-  fd.append('installer_name',iname);
+
+  const fd = new FormData();
+  fd.append('photo',          S.blob, 'roof.jpg');
+  fd.append('polygon',        JSON.stringify(S.poly));
+  fd.append('panel_count',    panels);
+  fd.append('system_kw',      kw);
+  fd.append('roof_type',      roof);
+  fd.append('mounting_type',  mount);
+  fd.append('homeowner_name', hname);
+  fd.append('monthly_bill',   bill);
+  fd.append('installer_name', iname);
+  fd.append('installer_phone',iphone);
+  fd.append('installer_email',iemail);
+  fd.append('panel_brand',    pbrand);
+  fd.append('inverter_brand', ibrand);
+
   try{
-    const res=await fetch('/api/generate-quote',{method:'POST',body:fd});
-    if(!res.ok){const err=await res.json();throw new Error(err.error||'Server error');}
-    const data=await res.json();
-    S.pdfUrl=data.pdf_url;
-    S.imgUrl=data.image_url;
-    S.fin=data.financials;
+    const res = await fetch('/api/generate-quote', {method:'POST', body:fd});
+    if(!res.ok){
+      const err = await res.json();
+      throw new Error(err.error||'Server error');
+    }
+    const data = await res.json();
+    S.pdfUrl  = data.pdf_url;
+    S.imgUrl  = data.image_url;
+    S.fin     = data.financials;
     showResult(data);
-  }catch(err){
+  } catch(err){
     alert('Error: '+err.message+'\n\nPlease try again.');
     go(3);
   }
 }
 
 function showResult(data){
-  const f=data.financials;
-  document.getElementById('result-img').src=data.image_url;
-  document.getElementById('r-kw').textContent=f.system_kw+' kW';
-  document.getElementById('r-cost').textContent='Rs '+fmt(f.net_cost);
-  document.getElementById('r-save').textContent='Rs '+fmt(f.annual_savings)+'/yr';
-  document.getElementById('r-pay').textContent=f.payback_years+' yrs';
+  const f = data.financials;
+  document.getElementById('result-img').src = data.image_url;
+  document.getElementById('r-kw').textContent   = f.system_kw+' kW';
+  document.getElementById('r-cost').textContent  = 'Rs '+fmt(f.net_cost);
+  document.getElementById('r-save').textContent  = 'Rs '+fmt(f.annual_savings)+'/yr';
+  document.getElementById('r-pay').textContent   = f.payback_years+' yrs';
   go(5);
 }
 
 function downloadPDF(){
-  if(S.pdfUrl)window.open(S.pdfUrl,'_blank');
+  if(S.pdfUrl) window.open(S.pdfUrl,'_blank');
 }
 
 function shareWA(){
-  const f=S.fin;
-  const hw=document.getElementById('hname').value||'Homeowner';
-  const msg=encodeURIComponent(
+  const f   = S.fin;
+  const hw  = document.getElementById('hname').value||'Homeowner';
+  const msg = encodeURIComponent(
     'Solar Proposal for '+hw+'\n\n'+
     'System: '+f.system_kw+' kW | '+f.panel_count+' Panels\n'+
     'Net Cost: Rs '+fmt(f.net_cost)+' after subsidy\n'+
