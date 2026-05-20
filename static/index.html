@@ -278,26 +278,23 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
 </div>
 
 <script>
-// ── STATE ──────────────────────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────────────────
 const S = {
   blob: null, url: null,
-  poly: [],        // panel polygon points
-  polyClosed: false,
-  legs: [],        // [{top:{x,y}, bottom:{x,y}}] — one per corner
-  legDrawing: null,// {cornerIndex, top:{x,y}} — leg currently being drawn
-  mode: 'panel',   // 'panel' | 'leg'
+  poly: [], polyClosed: false,
+  legs: [], legDrawing: null,
+  mode: 'panel',
   fin: {}, pdfUrl: null, imgUrl: null
 };
 
 let canvas, ctx, sc = {x:1, y:1};
 let isDragging = false;
 
-// ── PANEL COUNT CALC ───────────────────────────────────────────────────────────
+// ── PANEL COUNT ───────────────────────────────────────────────────────────────
 function updatePanelCount() {
   const kw   = parseFloat(document.getElementById('kw').value) || 5;
   const watt = parseInt(document.getElementById('panel_watt').value) || 550;
-  const count = Math.ceil((kw * 1000) / watt);
-  document.getElementById('panels').value = count;
+  document.getElementById('panels').value = Math.ceil((kw * 1000) / watt);
 }
 
 function getPanelLayout(count) {
@@ -306,7 +303,7 @@ function getPanelLayout(count) {
   return { rows: 4, cols: Math.ceil(count / 4) };
 }
 
-// ── STEP NAVIGATION ───────────────────────────────────────────────────────────
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
 function go(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById('s' + n).classList.add('active');
@@ -317,7 +314,7 @@ function go(n) {
   if (n === 2) initCanvas();
 }
 
-// ── PHOTO UPLOAD ───────────────────────────────────────────────────────────────
+// ── PHOTO UPLOAD ──────────────────────────────────────────────────────────────
 function compress(file, cb) {
   const r = new FileReader();
   r.onload = function(e) {
@@ -330,7 +327,9 @@ function compress(file, cb) {
       const c = document.createElement('canvas');
       c.width = w; c.height = h;
       c.getContext('2d').drawImage(img, 0, 0, w, h);
-      c.toBlob(function(blob) { cb(blob, URL.createObjectURL(blob)); }, 'image/jpeg', 0.85);
+      c.toBlob(function(blob) {
+        cb(blob, URL.createObjectURL(blob));
+      }, 'image/jpeg', 0.85);
     };
     img.src = e.target.result;
   };
@@ -338,7 +337,8 @@ function compress(file, cb) {
 }
 
 document.getElementById('photo-input').addEventListener('change', function(e) {
-  const f = e.target.files[0]; if (!f) return;
+  const f = e.target.files[0];
+  if (!f) return;
   compress(f, function(blob, url) {
     S.blob = blob; S.url = url;
     document.getElementById('preview-img').src = url;
@@ -364,6 +364,7 @@ function initCanvas() {
   S.legs = []; S.legDrawing = null;
   S.mode = 'panel';
   setMode('panel');
+
   img.onload = function() {
     canvas.width  = img.naturalWidth;
     canvas.height = img.naturalHeight;
@@ -372,38 +373,66 @@ function initCanvas() {
     sc.x = img.naturalWidth  / img.offsetWidth;
     sc.y = img.naturalHeight / img.offsetHeight;
   };
-  canvas.ontouchstart = handleTouch;
-  canvas.ontouchmove  = handleTouchMove;
-  canvas.ontouchend   = handleTouchEnd;
-  canvas.onmousedown  = handleMouseDown;
-  canvas.onmousemove  = handleMouseMove;
-  canvas.onmouseup    = handleMouseUp;
+
+  // ── MOUSE EVENTS (laptop) ──────────────────────────────────────────────────
+  canvas.onmousedown = function(e) {
+    e.preventDefault();
+    isDragging = true;
+    const pt = getCoords(e);
+    if (S.mode === 'panel') {
+      handlePanelTap(pt);
+    } else {
+      startLeg(pt);
+    }
+  };
+
+  canvas.onmousemove = function(e) {
+    e.preventDefault();
+    if (!isDragging) return;
+    if (S.mode === 'leg' && S.legDrawing) {
+      S.legDrawing.current = getCoords(e);
+      redraw();
+    }
+  };
+
+  canvas.onmouseup = function(e) {
+    e.preventDefault();
+    isDragging = false;
+    if (S.mode === 'leg' && S.legDrawing) {
+      finishLeg(getCoords(e));
+    }
+  };
+
+  // ── TOUCH EVENTS (phone) ──────────────────────────────────────────────────
+  canvas.ontouchstart = function(e) {
+    e.preventDefault();
+    isDragging = true;
+    const pt = getCoords(e);
+    if (S.mode === 'panel') {
+      handlePanelTap(pt);
+    } else {
+      startLeg(pt);
+    }
+  };
+
+  canvas.ontouchmove = function(e) {
+    e.preventDefault();
+    if (S.mode === 'leg' && S.legDrawing) {
+      S.legDrawing.current = getCoords(e);
+      redraw();
+    }
+  };
+
+  canvas.ontouchend = function(e) {
+    e.preventDefault();
+    isDragging = false;
+    if (S.mode === 'leg' && S.legDrawing && S.legDrawing.current) {
+      finishLeg(S.legDrawing.current);
+    }
+  };
 }
 
-// ── MODE SWITCH ───────────────────────────────────────────────────────────────
-function setMode(mode) {
-  S.mode = mode;
-  document.getElementById('mode-panel').className =
-    'mode-btn' + (mode === 'panel' ? ' active-mode' : '');
-  document.getElementById('mode-leg').className =
-    'mode-btn' + (mode === 'leg' ? ' leg-mode' : '');
-  document.getElementById('leg-hint-btn').style.display =
-    mode === 'leg' ? 'inline-block' : 'none';
-  updateStatus();
-}
-
-function showLegHint() {
-  alert(
-    'HOW TO DRAW SUPPORT LEGS:\n\n' +
-    '1. Tap near a corner of the yellow panel polygon\n' +
-    '2. Drag your finger straight DOWN\n' +
-    '3. Release where the leg touches the roof\n\n' +
-    'Do this for all 4 corners.\n' +
-    'Longer line = taller support structure.'
-  );
-}
-
-// ── COORDINATE HELPERS ────────────────────────────────────────────────────────
+// ── COORDINATE HELPER ─────────────────────────────────────────────────────────
 function getCoords(e) {
   const r = canvas.getBoundingClientRect();
   const src = e.touches ? e.touches[0] : e;
@@ -417,115 +446,106 @@ function distanceTo(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-function nearestPolyCorner(pt) {
-  let best = null, bestDist = Infinity;
-  S.poly.forEach(function(p, i) {
-    const d = distanceTo(pt, p);
-    if (d < bestDist) { bestDist = d; best = i; }
-  });
-  return bestDist < 40 * Math.max(sc.x, sc.y) ? best : null;
+// ── MODE ──────────────────────────────────────────────────────────────────────
+function setMode(mode) {
+  S.mode = mode;
+  document.getElementById('mode-panel').className =
+    'mode-btn' + (mode === 'panel' ? ' active-mode' : '');
+  document.getElementById('mode-leg').className =
+    'mode-btn' + (mode === 'leg' ? ' leg-mode' : '');
+  const legHint = document.getElementById('leg-hint-btn');
+  if (legHint) legHint.style.display = mode === 'leg' ? 'inline-block' : 'none';
+  updateStatus();
 }
 
-// ── TOUCH / MOUSE HANDLERS ────────────────────────────────────────────────────
-let isDragging = false;
-
-function handleTouchStart(e) { e.preventDefault(); handleStart(getCoords(e)); }
-function handleTouchMove(e)  { e.preventDefault(); handleMove(getCoords(e));  }
-function handleTouchEnd(e)   { e.preventDefault(); handleEnd();               }
-function handleMouseDown(e)  { canvas.onmousedown = function(e) { 
-  isDragging = true; 
-  handleStart(getCoords(e)); 
-}; }
-function handleMouseMove(e)  { if (isDragging) handleMove(getCoords(e));      }
-function handleMouseUp(e)    { isDragging = false; handleEnd();               }
-
-// Fix: use correct touch handler name
-canvas.ontouchstart = function(e) { e.preventDefault(); handleStart(getCoords(e)); };
-canvas.ontouchmove  = function(e) { e.preventDefault(); handleMove(getCoords(e));  };
-canvas.ontouchend   = function(e) { e.preventDefault(); handleEnd();               };
-canvas.onmousedown  = function(e) { handleStart(getCoords(e)); };
-canvas.onmousemove  = function(e) { if(isDragging) handleMove(getCoords(e)); };
-canvas.onmouseup    = function(e) { isDragging = false; handleEnd(); };
-canvas.onclick      = function(e) { if(S.mode==='panel') handleStart(getCoords(e)); };
-
-function handleStart(pt) {
-  if (S.mode === 'panel') {
-    handlePanelTap(pt);
-  } else {
-    // Leg mode — find nearest polygon corner to start from
-    const cornerIdx = nearestPolyCorner(pt);
-    if (cornerIdx !== null) {
-      S.legDrawing = {
-        cornerIndex: cornerIdx,
-        top: { x: S.poly[cornerIdx].x, y: S.poly[cornerIdx].y }
-      };
-    }
-  }
-}
-
-function handleMove(pt) {
-  if (S.mode === 'leg' && S.legDrawing) {
-    S.legDrawing.current = pt;
-    redraw();
-  }
-}
-
-function handleEnd() {
-  if (S.mode === 'leg' && S.legDrawing && S.legDrawing.current) {
-    // Only save if user dragged downward
-    const top    = S.legDrawing.top;
-    const bottom = S.legDrawing.current;
-    if (bottom.y > top.y + 10) {
-      // Remove existing leg for this corner if any
-      S.legs = S.legs.filter(l => l.cornerIndex !== S.legDrawing.cornerIndex);
-      S.legs.push({
-        cornerIndex: S.legDrawing.cornerIndex,
-        top:    { x: top.x,    y: top.y    },
-        bottom: { x: top.x,    y: bottom.y } // keep x same — vertical line
-      });
-    }
-    S.legDrawing = null;
-    redraw();
-    checkEnableNext();
-  }
+function showLegHint() {
+  alert(
+    'HOW TO DRAW SUPPORT LEGS:\n\n' +
+    '1. Click or tap near a yellow corner dot\n' +
+    '2. Hold and drag straight DOWN\n' +
+    '3. Release where the leg touches the roof\n\n' +
+    'Do this for all 4 corners.\n' +
+    'Longer line = taller support structure.'
+  );
 }
 
 // ── PANEL POLYGON ─────────────────────────────────────────────────────────────
 function handlePanelTap(pt) {
   if (S.polyClosed) return;
 
-  // Check if tapping near first point to close polygon
-  if (S.poly.length >= 3) {
-    if (distanceTo(pt, S.poly[0]) < 35 * sc.x) {
-      S.polyClosed = true;
-      redraw();
-      updateStatus();
-      setMode('leg'); // auto switch to leg mode
-      return;
-    }
+  // Close polygon if near first point
+  if (S.poly.length >= 3 && distanceTo(pt, S.poly[0]) < 35 * Math.max(sc.x, sc.y)) {
+    S.polyClosed = true;
+    redraw();
+    updateStatus();
+    // Auto switch to leg mode
+    setTimeout(function() { setMode('leg'); }, 400);
+    return;
   }
-  S.poly.push(pt);
+
+  S.poly.push({ x: pt.x, y: pt.y });
   redraw();
   updateStatus();
 }
 
-// ── DRAW ──────────────────────────────────────────────────────────────────────
+// ── SUPPORT LEGS ──────────────────────────────────────────────────────────────
+function startLeg(pt) {
+  if (!S.polyClosed) return;
+
+  // Find nearest polygon corner
+  let best = null, bestDist = Infinity;
+  S.poly.forEach(function(p, i) {
+    const d = distanceTo(pt, p);
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+
+  // Must be within 50px of a corner
+  if (bestDist < 50 * Math.max(sc.x, sc.y)) {
+    S.legDrawing = {
+      cornerIndex: best,
+      top: { x: S.poly[best].x, y: S.poly[best].y },
+      current: null
+    };
+  }
+}
+
+function finishLeg(pt) {
+  if (!S.legDrawing) return;
+  const top = S.legDrawing.top;
+
+  // Only save if dragged downward at least 20px
+  if (pt.y > top.y + 20) {
+    S.legs = S.legs.filter(function(l) {
+      return l.cornerIndex !== S.legDrawing.cornerIndex;
+    });
+    S.legs.push({
+      cornerIndex: S.legDrawing.cornerIndex,
+      top:    { x: top.x, y: top.y  },
+      bottom: { x: top.x, y: pt.y   }
+    });
+  }
+  S.legDrawing = null;
+  redraw();
+  checkEnableNext();
+}
+
+// ── REDRAW ────────────────────────────────────────────────────────────────────
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   const p = S.poly;
   if (!p.length) return;
 
-  // Draw panel polygon
+  // Panel polygon fill
   if (S.polyClosed) {
     ctx.beginPath();
     ctx.moveTo(p[0].x, p[0].y);
     p.forEach(pt => ctx.lineTo(pt.x, pt.y));
     ctx.closePath();
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.20)';
+    ctx.fillStyle = 'rgba(255,215,0,0.18)';
     ctx.fill();
   }
 
+  // Panel polygon border
   ctx.beginPath();
   ctx.moveTo(p[0].x, p[0].y);
   p.forEach(pt => ctx.lineTo(pt.x, pt.y));
@@ -536,7 +556,7 @@ function redraw() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Panel polygon corner dots
+  // Corner dots
   p.forEach(function(pt, i) {
     ctx.beginPath();
     ctx.arc(pt.x, pt.y, 9 * sc.x, 0, Math.PI * 2);
@@ -547,37 +567,29 @@ function redraw() {
     ctx.stroke();
   });
 
-  // Draw INSTALL SOLAR HERE label in polygon center
+  // INSTALL SOLAR HERE label
   if (S.polyClosed) {
     const cx = p.reduce((s, pt) => s + pt.x, 0) / p.length;
     const cy = p.reduce((s, pt) => s + pt.y, 0) / p.length;
-    ctx.font = `bold ${14 * sc.x}px sans-serif`;
+    ctx.font      = 'bold ' + (14 * sc.x) + 'px sans-serif';
     ctx.fillStyle = '#ffd700';
     ctx.textAlign = 'center';
     ctx.fillText('INSTALL SOLAR HERE', cx, cy);
     ctx.textAlign = 'left';
   }
 
-  // Draw saved support legs
+  // Saved legs
   S.legs.forEach(function(leg) {
-    drawLeg(leg.top, leg.bottom);
-    // Height label
-    const pixelHeight = leg.bottom.y - leg.top.y;
-    const heightFt    = Math.round((pixelHeight / canvas.height) * 15);
-    const label       = heightFt + ' ft leg';
-    ctx.font = `${10 * sc.x}px sans-serif`;
-    ctx.fillStyle = '#ff4500';
-    ctx.fillText(label, leg.top.x + 6 * sc.x, (leg.top.y + leg.bottom.y) / 2);
+    drawLegLine(leg.top, leg.bottom, leg);
   });
 
-  // Draw leg currently being dragged
+  // Leg being drawn right now
   if (S.legDrawing && S.legDrawing.current) {
-    drawLeg(S.legDrawing.top, S.legDrawing.current);
+    drawLegLine(S.legDrawing.top, S.legDrawing.current, null);
   }
 }
 
-function drawLeg(top, bottom) {
-  // Vertical line
+function drawLegLine(top, bottom, leg) {
   ctx.beginPath();
   ctx.moveTo(top.x, top.y);
   ctx.lineTo(bottom.x, bottom.y);
@@ -586,13 +598,13 @@ function drawLeg(top, bottom) {
   ctx.setLineDash([]);
   ctx.stroke();
 
-  // Top dot (panel corner)
+  // Top dot
   ctx.beginPath();
   ctx.arc(top.x, top.y, 6 * sc.x, 0, Math.PI * 2);
   ctx.fillStyle = '#ff4500';
   ctx.fill();
 
-  // Bottom dot (roof contact)
+  // Bottom dot
   ctx.beginPath();
   ctx.arc(bottom.x, bottom.y, 7 * sc.x, 0, Math.PI * 2);
   ctx.fillStyle = '#ff6b35';
@@ -600,40 +612,50 @@ function drawLeg(top, bottom) {
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 2 * sc.x;
   ctx.stroke();
+
+  // Height label
+  if (leg) {
+    const pixH    = bottom.y - top.y;
+    const heightFt = Math.round((pixH / canvas.height) * 15);
+    ctx.font      = (10 * sc.x) + 'px sans-serif';
+    ctx.fillStyle = '#ff4500';
+    ctx.fillText('~' + heightFt + ' ft', top.x + 8 * sc.x, (top.y + bottom.y) / 2);
+  }
 }
 
 // ── STATUS & VALIDATION ───────────────────────────────────────────────────────
 function updateStatus() {
   const el = document.getElementById('draw-status');
+  if (!el) return;
+
   if (S.mode === 'panel') {
     const n = S.poly.length;
     if (n === 0) {
-      el.textContent = 'Tap corners to mark the panel installation area';
+      el.textContent = 'Click or tap corners to mark the panel installation area';
       el.style.color = '#aaa';
     } else if (n < 3) {
       el.textContent = n + ' points — add ' + (3 - n) + ' more minimum';
       el.style.color = '#aaa';
     } else if (!S.polyClosed) {
-      el.textContent = n + ' points — tap orange dot to close the shape';
+      el.textContent = n + ' points — click the orange dot to close the shape';
       el.style.color = '#ffd700';
     } else {
-      el.textContent = '✅ Panel area marked — now draw support legs';
+      el.textContent = '✅ Panel area marked — switch to Support Legs and draw leg lines';
       el.style.color = '#22a855';
     }
   } else {
     const legCount = S.legs.length;
-    const needed   = Math.min(S.poly.length, 4);
-    el.textContent = legCount + ' of ' + needed + ' legs drawn — tap a yellow corner and drag down';
-    el.style.color = legCount >= 2 ? '#22a855' : '#ff6b35';
-    checkEnableNext();
+    el.textContent  = legCount + ' leg' + (legCount !== 1 ? 's' : '') +
+      ' drawn — click a yellow corner and drag DOWN to draw a leg';
+    el.style.color  = legCount >= 2 ? '#22a855' : '#ff6b35';
   }
 }
 
 function checkEnableNext() {
   const btn = document.getElementById('s2next');
-  // Enable when polygon closed + at least 2 legs drawn
+  if (!btn) return;
   const ok = S.polyClosed && S.legs.length >= 2;
-  btn.disabled = !ok;
+  btn.disabled      = !ok;
   btn.style.opacity = ok ? '1' : '0.4';
   btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
   updateStatus();
@@ -642,10 +664,9 @@ function checkEnableNext() {
 function clearAll() {
   S.poly = []; S.polyClosed = false;
   S.legs = []; S.legDrawing = null;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   setMode('panel');
   checkEnableNext();
-  updateStatus();
 }
 
 function undoLast() {
@@ -667,45 +688,40 @@ function undoLast() {
 function burnMarkingsToBlob(cb) {
   const img = new Image();
   img.onload = function() {
-    const c = document.createElement('canvas');
+    const c  = document.createElement('canvas');
     c.width  = img.naturalWidth;
     c.height = img.naturalHeight;
     const x  = c.getContext('2d');
-
-    // Draw original photo
     x.drawImage(img, 0, 0);
 
-    // Scale factor from draw canvas to original image
     const sfx = img.naturalWidth  / canvas.width;
     const sfy = img.naturalHeight / canvas.height;
+    const p   = S.poly;
 
-    // Burn panel polygon
-    const p = S.poly;
+    // Burn polygon
     if (p.length >= 3) {
       x.beginPath();
       x.moveTo(p[0].x * sfx, p[0].y * sfy);
       p.forEach(pt => x.lineTo(pt.x * sfx, pt.y * sfy));
       x.closePath();
-      x.fillStyle = 'rgba(255, 215, 0, 0.18)';
+      x.fillStyle = 'rgba(255,215,0,0.18)';
       x.fill();
       x.strokeStyle = '#ffd700';
       x.lineWidth   = 4 * sfx;
-      x.setLineDash([]);
       x.stroke();
 
-      // INSTALL SOLAR HERE label
+      // Label
       const cx = p.reduce((s, pt) => s + pt.x, 0) / p.length;
       const cy = p.reduce((s, pt) => s + pt.y, 0) / p.length;
-      x.font      = `bold ${18 * sfx}px sans-serif`;
+      x.font      = 'bold ' + (18 * sfx) + 'px sans-serif';
       x.fillStyle = '#ffd700';
       x.textAlign = 'center';
       x.fillText('INSTALL SOLAR HERE', cx * sfx, cy * sfy);
       x.textAlign = 'left';
     }
 
-    // Burn support legs
+    // Burn legs
     S.legs.forEach(function(leg) {
-      // Vertical red line
       x.beginPath();
       x.moveTo(leg.top.x * sfx,    leg.top.y * sfy);
       x.lineTo(leg.bottom.x * sfx, leg.bottom.y * sfy);
@@ -713,13 +729,11 @@ function burnMarkingsToBlob(cb) {
       x.lineWidth   = 4 * sfx;
       x.stroke();
 
-      // Top dot
       x.beginPath();
       x.arc(leg.top.x * sfx, leg.top.y * sfy, 8 * sfx, 0, Math.PI * 2);
       x.fillStyle = '#ff4500';
       x.fill();
 
-      // Bottom dot
       x.beginPath();
       x.arc(leg.bottom.x * sfx, leg.bottom.y * sfy, 9 * sfx, 0, Math.PI * 2);
       x.fillStyle = '#ff6b35';
@@ -728,24 +742,13 @@ function burnMarkingsToBlob(cb) {
       x.lineWidth = 2 * sfx;
       x.stroke();
 
-      // Height label
-      const pixH  = leg.bottom.y - leg.top.y;
+      const pixH     = leg.bottom.y - leg.top.y;
       const heightFt = Math.round((pixH / canvas.height) * 15);
-      x.font      = `bold ${14 * sfx}px sans-serif`;
+      x.font      = 'bold ' + (14 * sfx) + 'px sans-serif';
       x.fillStyle = '#ff4500';
-      x.fillText(
-        'LEG: ~' + heightFt + ' ft',
-        (leg.top.x + 10) * sfx,
-        ((leg.top.y + leg.bottom.y) / 2) * sfy
-      );
+      x.fillText('LEG ~' + heightFt + 'ft', (leg.top.x + 10) * sfx,
+        ((leg.top.y + leg.bottom.y) / 2) * sfy);
     });
-
-    // Burn SUPPORT LEGS label
-    if (S.legs.length > 0) {
-      x.font      = `bold ${14 * sfx}px sans-serif`;
-      x.fillStyle = '#ff4500';
-      x.fillText('SUPPORT LEGS (RED)', 20 * sfx, 30 * sfy);
-    }
 
     c.toBlob(function(blob) { cb(blob); }, 'image/jpeg', 0.88);
   };
@@ -794,9 +797,9 @@ function animateSteps() {
 }
 
 async function generate() {
-  const kw     = parseFloat(document.getElementById('kw').value)    || 5;
-  const bill   = parseInt(document.getElementById('bill').value)     || 3000;
-  const watt   = parseInt(document.getElementById('panel_watt').value) || 550;
+  const kw     = parseFloat(document.getElementById('kw').value)       || 5;
+  const bill   = parseInt(document.getElementById('bill').value)        || 3000;
+  const watt   = parseInt(document.getElementById('panel_watt').value)  || 550;
   const hname  = document.getElementById('hname').value  || 'Homeowner';
   const iname  = document.getElementById('iname').value  || 'Solar Installer';
   const iphone = document.getElementById('iphone').value || '';
@@ -809,29 +812,25 @@ async function generate() {
   go(4);
   animateSteps();
 
-  // Burn markings into image first
   burnMarkingsToBlob(async function(markedBlob) {
-    const fd = new FormData();
-    fd.append('photo',          markedBlob, 'roof_marked.jpg');
-    fd.append('system_kw',      kw);
-    fd.append('panel_watt',     watt);
-    fd.append('panel_count',    S.fin.panel_count);
-    fd.append('roof_type',      roof);
-    fd.append('homeowner_name', hname);
-    fd.append('monthly_bill',   bill);
-    fd.append('installer_name', iname);
-    fd.append('installer_phone',iphone);
-    fd.append('installer_email',iemail);
-    fd.append('panel_brand',    pbrand);
-    fd.append('inverter_brand', ibrand);
-    fd.append('leg_count',      S.legs.length);
-
-    // Send leg height data
     const legHeights = S.legs.map(function(leg) {
-      const pixH = leg.bottom.y - leg.top.y;
-      return Math.round((pixH / canvas.height) * 15); // convert to feet
+      return Math.round(((leg.bottom.y - leg.top.y) / canvas.height) * 15);
     });
-    fd.append('leg_heights_ft', JSON.stringify(legHeights));
+
+    const fd = new FormData();
+    fd.append('photo',           markedBlob, 'roof_marked.jpg');
+    fd.append('system_kw',       kw);
+    fd.append('panel_watt',      watt);
+    fd.append('panel_count',     S.fin.panel_count);
+    fd.append('roof_type',       roof);
+    fd.append('homeowner_name',  hname);
+    fd.append('monthly_bill',    bill);
+    fd.append('installer_name',  iname);
+    fd.append('installer_phone', iphone);
+    fd.append('installer_email', iemail);
+    fd.append('panel_brand',     pbrand);
+    fd.append('inverter_brand',  ibrand);
+    fd.append('leg_heights_ft',  JSON.stringify(legHeights));
 
     try {
       const res = await fetch('/api/generate-quote', { method: 'POST', body: fd });
@@ -865,15 +864,14 @@ function downloadPDF() {
 }
 
 function shareWA() {
-  const f   = S.fin;
-  const hw  = document.getElementById('hname').value || 'Homeowner';
+  const f  = S.fin;
+  const hw = document.getElementById('hname').value || 'Homeowner';
   const msg = encodeURIComponent(
     'Solar Proposal for ' + hw + '\n\n' +
     'System: ' + f.system_kw + ' kW | ' + f.panel_count + ' Panels\n' +
     'Net Cost: Rs ' + fmt(f.net_cost) + ' after subsidy\n' +
     'Annual Savings: Rs ' + fmt(f.annual_savings) + '\n' +
-    'Payback: ' + f.payback_years + ' years\n\n' +
-    'Generated by SolarQuote'
+    'Payback: ' + f.payback_years + ' years\n\nGenerated by SolarQuote'
   );
   window.open('https://wa.me/?text=' + msg, '_blank');
 }
@@ -882,7 +880,6 @@ function reset() {
   S.blob = null; S.url = null;
   S.poly = []; S.polyClosed = false;
   S.legs = []; S.legDrawing = null;
-  S.fin = {}; S.pdfUrl = null; S.imgUrl = null;
   document.querySelector('.upload-zone').style.display = 'block';
   document.getElementById('preview-wrap').style.display = 'none';
   document.getElementById('photo-input').value = '';
