@@ -432,7 +432,10 @@ let isDragging = false;
 function handleTouchStart(e) { e.preventDefault(); handleStart(getCoords(e)); }
 function handleTouchMove(e)  { e.preventDefault(); handleMove(getCoords(e));  }
 function handleTouchEnd(e)   { e.preventDefault(); handleEnd();               }
-function handleMouseDown(e)  { isDragging = true;  handleStart(getCoords(e)); }
+function handleMouseDown(e)  { canvas.onmousedown = function(e) { 
+  isDragging = true; 
+  handleStart(getCoords(e)); 
+}; }
 function handleMouseMove(e)  { if (isDragging) handleMove(getCoords(e));      }
 function handleMouseUp(e)    { isDragging = false; handleEnd();               }
 
