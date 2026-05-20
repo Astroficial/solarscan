@@ -37,9 +37,11 @@ def get_panel_layout(panel_count):
 # ── DYNAMIC PROMPT BUILDER ────────────────────────────────────────────────────
 def build_prompt(system_kw, panel_count, panel_watt, leg_heights_ft, roof_type):
 
-    layout = get_panel_layout(panel_count)
-layout_rows    = layout['rows']
-layout_columns = layout['cols']
+    layout         = get_panel_layout(panel_count)
+    layout_rows    = layout['rows']
+    layout_columns = layout['cols']
+    avg_leg_ft     = round(sum(leg_heights_ft) / len(leg_heights_ft), 1) if leg_heights_ft else 3.0
+    max_leg_ft     = max(leg_heights_ft) if leg_heights_ft else 3.0
     # Average leg height from engineer markings
     avg_leg_ft = round(sum(leg_heights_ft) / len(leg_heights_ft), 1) if leg_heights_ft else 3.0
     max_leg_ft = max(leg_heights_ft) if leg_heights_ft else 3.0
