@@ -439,6 +439,10 @@ function handleMouseUp(e)    { isDragging = false; handleEnd();               }
 canvas.ontouchstart = function(e) { e.preventDefault(); handleStart(getCoords(e)); };
 canvas.ontouchmove  = function(e) { e.preventDefault(); handleMove(getCoords(e));  };
 canvas.ontouchend   = function(e) { e.preventDefault(); handleEnd();               };
+canvas.onmousedown  = function(e) { handleStart(getCoords(e)); };
+canvas.onmousemove  = function(e) { if(isDragging) handleMove(getCoords(e)); };
+canvas.onmouseup    = function(e) { isDragging = false; handleEnd(); };
+canvas.onclick      = function(e) { if(S.mode==='panel') handleStart(getCoords(e)); };
 
 function handleStart(pt) {
   if (S.mode === 'panel') {
