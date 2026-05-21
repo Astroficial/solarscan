@@ -42,11 +42,7 @@ def build_prompt(system_kw, panel_count, panel_watt, leg_heights_ft, roof_type):
     layout_columns = layout['cols']
     avg_leg_ft     = round(sum(leg_heights_ft) / len(leg_heights_ft), 1) if leg_heights_ft else 3.0
     max_leg_ft     = max(leg_heights_ft) if leg_heights_ft else 3.0
-    # Average leg height from engineer markings
-    avg_leg_ft = round(sum(leg_heights_ft) / len(leg_heights_ft), 1) if leg_heights_ft else 3.0
-    max_leg_ft = max(leg_heights_ft) if leg_heights_ft else 3.0
-
-    roof_descriptions = {
+  roof_descriptions = {
         "flat_rcc":     "flat reinforced concrete Indian residential rooftop",
         "sloped_tile":  "sloped clay tile roof Indian house",
         "metal_sheet":  "corrugated metal sheet industrial roof",
@@ -410,7 +406,8 @@ def generate_pdf(image_path, fin, installer, homeowner, output_path,
         ("TOPPADDING",    (0,0), (-1,-1), 6),
         ("BOTTOMPADDING", (0,0), (-1,-1), 6),
         ("LEFTPADDING",   (0,0), (-1,-1), 8),
-        ("ROWHEIGHTS",    {1: 35}),
+        ("TOPPADDING",    (0,1), (0,1), 20),
+        ("BOTTOMPADDING", (0,1), (0,1), 20),
     ]))
     story.append(sigt)
     story.append(Spacer(1, 0.3*cm))
