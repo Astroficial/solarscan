@@ -36,70 +36,57 @@ def get_panel_layout(panel_count):
 
 # ── DYNAMIC PROMPT BUILDER ────────────────────────────────────────────────────
 def build_prompt(system_kw, panel_count, panel_watt, leg_heights_ft, roof_type):
-
-    layout         = get_panel_layout(panel_count)
-    layout_rows    = layout['rows']
+    layout = get_panel_layout(panel_count)
+    layout_rows = layout['rows']
     layout_columns = layout['cols']
-    avg_leg_ft     = round(sum(leg_heights_ft) / len(leg_heights_ft), 1) if leg_heights_ft else 3.0
-    max_leg_ft     = max(leg_heights_ft) if leg_heights_ft else 3.0
-  roof_descriptions = {
-        "flat_rcc":     "flat reinforced concrete Indian residential rooftop",
-        "sloped_tile":  "sloped clay tile roof Indian house",
-        "metal_sheet":  "corrugated metal sheet industrial roof",
+    avg_leg_ft = round(sum(leg_heights_ft) / len(leg_heights_ft), 1) if leg_heights_ft else 3.0
+    max_leg_ft = max(leg_heights_ft) if leg_heights_ft else 3.0
+
+    roof_descriptions = {
+        "flat_rcc": "flat reinforced concrete Indian residential rooftop",
+        "sloped_tile": "sloped clay tile roof Indian house",
+        "metal_sheet": "corrugated metal sheet industrial roof",
         "flat_terrace": "flat concrete terrace rooftop",
     }
     roof_desc = roof_descriptions.get(roof_type, "flat concrete Indian rooftop")
 
-    prompt = f"""Edit the uploaded actual roof photograph by installing a realistic Indian rooftop solar panel system inside the marked yellow polygon area.
-
-The yellow polygon shows the exact panel plane selected by the engineer.
-
-Install a {system_kw} kW rooftop solar system using exactly {panel_count} separate solar panels arranged in {layout_rows} rows × {layout_columns} columns.
-
-Every panel must be clearly separate and countable. Each panel must have its own visible aluminum frame, clear gap from adjacent panels, and realistic blue photovoltaic cell texture. Do not merge panels into one large sheet.
-
-Mount the panels on realistic elevated Indian rooftop GI/MS support structure with visible rails, braces, clamps, cross members, and RCC concrete pedestal blocks.
-
-Support marking rule:
-If red support guide lines or blue footing marks are visible in the image, use them as the exact guidance for extended support rods. Extend realistic GI/MS support rods from the solar panel frame down to the marked roof footing points. Place RCC concrete blocks at the blue footing marks. The panels must not appear floating.
-
-If the panel polygon is visually higher than the roof surface, automatically add long support rods down to the nearest visible rooftop surface and place RCC concrete footing blocks below them.
-
-Orientation rule:
-The panels should appear south-facing according to the engineer’s camera angle. If the photo is taken from the south side facing north, show the front face of the solar panels toward the camera.
-
-Preserve the original roof photo completely:
-- do not change roof geometry
-- do not change parapet walls
-- do not change vents, tanks, AC units, pipes, trees, towers, buildings, sky, or background
-- do not distort the original camera perspective
-- do not remove stains, cracks, weathering, or rooftop texture
-
-Lighting and shadows:
-- match the original sunlight direction
-- add realistic shadows under panels, support rods, frames, and RCC blocks
-- shadows must fall naturally on the roof surface
-- panel reflections should be subtle, not mirror-like
-
-Electrical details:
-- add subtle DC cable routing under the panels
-- add one small inverter or junction box near a wall/parapet only if it fits naturally
-- keep wiring minimal and realistic
-
-Final output:
-A realistic Indian rooftop solar EPC proposal image showing exactly {panel_count} separate panels installed inside the marked polygon, with extended support rods and RCC footing blocks wherever marked.
-
-Strict negative instructions:
-- do not create one continuous solar sheet
-- do not merge panels
-- do not change exact panel count
-- do not ignore red support guide lines
-- do not ignore blue footing marks
-- do not create floating panels
-- do not paste another image
-- do not distort roof/background
-- do not add unrelated objects
-"""
+    prompt = (
+        "Edit the uploaded actual roof photograph by installing a realistic Indian rooftop solar panel system inside the marked yellow polygon area.\n\n"
+        "The yellow polygon shows the exact panel plane selected by the engineer.\n\n"
+        "Install a " + str(system_kw) + " kW rooftop solar system using exactly " + str(panel_count) + " separate solar panels arranged in " + str(layout_rows) + " rows x " + str(layout_columns) + " columns.\n\n"
+        "Every panel must be clearly separate and countable. Each panel must have its own visible aluminum frame, clear gap from adjacent panels, and realistic blue photovoltaic cell texture. Do not merge panels into one large sheet.\n\n"
+        "Mount the panels on realistic elevated Indian rooftop GI/MS support structure with visible rails, braces, clamps, cross members, and RCC concrete pedestal blocks.\n\n"
+        "Support marking rule:\n"
+        "If red support guide lines are visible in the image, use them as the exact guidance for extended support rods. Extend realistic GI/MS support rods from the solar panel frame down to the marked roof footing points. Place RCC concrete blocks at the base. The panels must not appear floating.\n\n"
+        "If the panel polygon is visually higher than the roof surface, automatically add long support rods down to the nearest visible rooftop surface and place RCC concrete footing blocks below them.\n\n"
+        "Orientation rule:\n"
+        "The panels should appear south-facing according to the engineer camera angle. If the photo is taken from the south side facing north, show the front face of the solar panels toward the camera.\n\n"
+        "Preserve the original roof photo completely:\n"
+        "- do not change roof geometry\n"
+        "- do not change parapet walls\n"
+        "- do not change vents, tanks, AC units, pipes, trees, towers, buildings, sky, or background\n"
+        "- do not distort the original camera perspective\n"
+        "- do not remove stains, cracks, weathering, or rooftop texture\n\n"
+        "Lighting and shadows:\n"
+        "- match the original sunlight direction\n"
+        "- add realistic shadows under panels, support rods, frames, and RCC blocks\n"
+        "- shadows must fall naturally on the roof surface\n"
+        "- panel reflections should be subtle, not mirror-like\n\n"
+        "Electrical details:\n"
+        "- add subtle DC cable routing under the panels\n"
+        "- add one small inverter or junction box near a wall only if it fits naturally\n"
+        "- keep wiring minimal and realistic\n\n"
+        "Final output: A realistic Indian rooftop solar EPC proposal image showing exactly " + str(panel_count) + " separate panels installed inside the marked polygon, with extended support rods and RCC footing blocks wherever marked.\n\n"
+        "Strict negative instructions:\n"
+        "- do not create one continuous solar sheet\n"
+        "- do not merge panels\n"
+        "- do not change exact panel count\n"
+        "- do not ignore red support guide lines\n"
+        "- do not create floating panels\n"
+        "- do not paste another image\n"
+        "- do not distort roof or background\n"
+        "- do not add unrelated objects"
+    )
 
     return prompt
 
