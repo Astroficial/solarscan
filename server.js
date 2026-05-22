@@ -113,34 +113,38 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
 }
 
 // ── CLOUDINARY UPLOAD ─────────────────────────────────────────────────────────
-async function uploadToCloudinary(buffer, folder, publicId) {
-  const timestamp   = Math.round(Date.now() / 1000);
-  const apiSecret   = process.env.CLOUDINARY_API_SECRET;
-  const apiKey      = process.env.CLOUDINARY_API_KEY;
-  const cloudName   = process.env.CLOUDINARY_CLOUD_NAME;
+async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
+  const timestamp  = Math.round(Date.now() / 1000);
+  const apiSecret  = process.env.CLOUDINARY_API_SECRET;
+  const apiKey     = process.env.CLOUDINARY_API_KEY;
+  const cloudName  = process.env.CLOUDINARY_CLOUD_NAME;
 
-  // Build string to sign
-  const paramStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}`;
-const signature = crypto
+  // Parameters MUST be alphabetical order, overwrite=1 not true
+  const paramStr = `folder=${folder}&overwrite=1&public_id=${publicId}&timestamp=${timestamp}`;
+
+  const signature = crypto
     .createHash('sha1')
     .update(paramStr + apiSecret)
     .digest('hex');
 
   const formData = new FormData();
-  formData.append('file',       new Blob([buffer], { type: 'image/jpeg' }), 'upload.jpg');
-  formData.append('folder',     folder);
-  formData.append('public_id',  publicId);
-  formData.append('overwrite',  'true');
-  formData.append('timestamp',  String(timestamp));
-  formData.append('api_key',    apiKey);
-  formData.append('signature',  signature);
+  formData.append('file',      new Blob([buffer], { type: 'image/jpeg' }), 'upload.jpg');
+  formData.append('folder',    folder);
+  formData.append('public_id', publicId);
+  formData.append('overwrite', '1');
+  formData.append('timestamp', String(timestamp));
+  formData.append('api_key',   apiKey);
+  formData.append('signature', signature);
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    { method: 'POST', body: formData }
-  );
+  const uploadUrl = resourceType === 'raw'
+    ? `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`
+    : `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
+  const response = await fetch(uploadUrl, { method: 'POST', body: formData });
   const data = await response.json();
+
+  console.log('Cloudinary response:', JSON.stringify(data).slice(0, 200));
+
   if (data.error) throw new Error('Cloudinary: ' + data.error.message);
   return data.secure_url;
 }
@@ -298,9 +302,12 @@ const aiResult = await openai.images.edit({
     });
 
     // Upload PDF to Cloudinary
-    const pdfBuffer = fs.readFileSync(pdfPath);
-    const pdfUrl    = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+    const pdfUrl = await uploadToCloudinary(
+  pdfBuffer,
+  'solarquote/pdfs',
+  `proposal_${jobId}`,
+  'raw'
+);
         {
           folder:        `solarquote/pdfs`,
           public_id:     `proposal_${jobId}`,
