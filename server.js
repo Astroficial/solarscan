@@ -108,17 +108,27 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
 // This uses official Cloudinary SDK. No manual signature. This fixes Invalid Signature.
 async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
   return new Promise((resolve, reject) => {
+    const finalPublicId =
+      resourceType === 'raw' && !String(publicId).toLowerCase().endsWith('.pdf')
+        ? `${publicId}.pdf`
+        : publicId;
+
     const stream = cloudinary.uploader.upload_stream(
       {
-        folder,
-        public_id: publicId,
+        folder: folder,
+        public_id: finalPublicId,
         overwrite: true,
         resource_type: resourceType,
       },
       (error, result) => {
         if (error) {
-          console.error('Cloudinary upload error:', error);
+          console.error('Cloudinary upload error:', error.message);
           reject(new Error('Cloudinary: ' + error.message));
+          return;
+        }
+
+        if (!result || !result.secure_url) {
+          reject(new Error('Cloudinary: Upload failed, no secure URL returned'));
           return;
         }
 
