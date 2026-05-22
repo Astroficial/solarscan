@@ -215,20 +215,30 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
           projects:       [],
         };
 
-    // Save marked photo
-    const photoPath = path.join(jobDir, 'roof_marked.jpg');
-    fs.writeFileSync(photoPath, req.file.buffer);
+// Save marked photo
+const photoPath = path.join(jobDir, 'roof_marked.jpg');
+fs.writeFileSync(photoPath, req.file.buffer);
+
+// Verify it is a valid image by checking buffer
+console.log(`Photo size: ${req.file.buffer.length} bytes, mimetype: ${req.file.mimetype}`);
 
     // Generate AI image
     console.log(`Job ${jobId}: Generating AI image...`);
     const prompt   = buildPrompt(systemKw, panelCount, legHeights, roofType);
-    const aiResult = await openai.images.edit({
-      model:  'gpt-image-1',
-      image:  fs.createReadStream(photoPath),
-      prompt,
-      n:      1,
-      size:   '1024x1024',
-    });
+const { toFile } = await import('openai');
+const imageFile = await toFile(
+  fs.createReadStream(photoPath),
+  'roof_marked.jpg',
+  { type: 'image/jpeg' }
+);
+
+const aiResult = await openai.images.edit({
+  model:  'gpt-image-1',
+  image:  imageFile,
+  prompt,
+  n:      1,
+  size:   '1024x1024',
+});
 
     const imageBuffer  = Buffer.from(aiResult.data[0].b64_json, 'base64');
     const resultPath   = path.join(jobDir, 'result.jpg');
