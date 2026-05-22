@@ -121,8 +121,8 @@ async function uploadToCloudinary(buffer, folder, publicId) {
 
   // Build string to sign
   const paramStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}`;
-  const signature = crypto
-    .createHash('sha256')
+const signature = crypto
+    .createHash('sha1')
     .update(paramStr + apiSecret)
     .digest('hex');
 
