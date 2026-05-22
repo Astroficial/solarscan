@@ -54,7 +54,7 @@ console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // ── TEMP DIR ──────────────────────────────────────────────────────────────────
-const TMP = '/tmp/solarquote';
+const TMP = '/tmp/solarscan';
 fs.mkdirSync(TMP, { recursive: true });
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -174,7 +174,7 @@ app.post('/api/save-profile', upload.fields([
     if (req.files?.logo?.[0]) {
       profile.logo_url = await uploadToCloudinary(
         req.files.logo[0].buffer,
-        `solarquote/${installerId}`,
+        `solarscan/${installerId}`,
         'logo'
       );
     }
@@ -188,7 +188,7 @@ app.post('/api/save-profile', upload.fields([
       if (req.files?.[key]?.[0]) {
         meta.photo_url = await uploadToCloudinary(
           req.files[key][0].buffer,
-          `solarquote/${installerId}/projects`,
+          `solarscan/${installerId}/projects`,
           `project_${i}`
         );
       }
@@ -306,7 +306,7 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
 
     const aiImageUrl = await uploadToCloudinary(
       imageBuffer,
-      'solarquote/results',
+      'solarscan/results',
       `result_${jobId}`,
       'image'
     );
@@ -333,7 +333,7 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
      const pdfBuffer = fs.readFileSync(pdfPath);
     const pdfUrl = await uploadToCloudinary(
       pdfBuffer,
-      'solarquote/pdfs',
+      'solarscan/pdfs',
       `proposal_${jobId}`,
       'raw'
     );
@@ -984,5 +984,5 @@ app.get('/', (req, res) => {
 
 // ── START ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`SolarQuote running on port ${PORT}`);
+  console.log(`solarscan running on port ${PORT}`);
 });
