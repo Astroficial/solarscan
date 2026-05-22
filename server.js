@@ -102,8 +102,22 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
 async function uploadToCloudinary(buffer, folder, publicId) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, public_id: publicId, overwrite: true, resource_type: 'image' },
-      (err, result) => err ? reject(err) : resolve(result.secure_url)
+      {
+        folder,
+        public_id:     publicId,
+        overwrite:     true,
+        resource_type: 'image',
+        api_key:       process.env.CLOUDINARY_API_KEY,
+        cloud_name:    process.env.CLOUDINARY_CLOUD_NAME,
+      },
+      (err, result) => {
+        if (err) {
+          console.error('Cloudinary error:', JSON.stringify(err));
+          reject(err);
+        } else {
+          resolve(result.secure_url);
+        }
+      }
     );
     stream.end(buffer);
   });
