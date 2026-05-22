@@ -141,42 +141,60 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
   };
 }
 
-// ── FIXED CLOUDINARY UPLOAD ───────────────────────────────────────────────────
-// This uses official Cloudinary SDK. No manual signature. This fixes Invalid Signature.
+// ── CLOUDINARY UPLOAD USING BASIC AUTH ────────────────────────────────────────
+// This avoids signature generation completely.
+
 async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
-  return new Promise((resolve, reject) => {
-    const finalPublicId =
-      resourceType === 'raw' && !String(publicId).toLowerCase().endsWith('.pdf')
-        ? `${publicId}.pdf`
-        : publicId;
+  const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
 
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: folder,
-        public_id: finalPublicId,
-        overwrite: true,
-        resource_type: resourceType,
-      },
-      (error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error.message);
-          reject(new Error('Cloudinary: ' + error.message));
-          return;
-        }
+  const formData = new FormData();
 
-        if (!result || !result.secure_url) {
-          reject(new Error('Cloudinary: Upload failed, no secure URL returned'));
-          return;
-        }
+  const fileName = resourceType === 'raw' ? `${publicId}.pdf` : `${publicId}.jpg`;
+  const fileType = resourceType === 'raw' ? 'application/pdf' : 'image/jpeg';
 
-        resolve(result.secure_url);
-      }
-    );
+  formData.append(
+    'file',
+    new Blob([buffer], { type: fileType }),
+    fileName
+  );
 
-    stream.end(buffer);
+  formData.append('folder', folder);
+  formData.append('public_id', publicId);
+  formData.append('overwrite', 'true');
+
+  const authHeader = Buffer
+    .from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`)
+    .toString('base64');
+
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${authHeader}`,
+    },
+    body: formData,
   });
-}
 
+  const responseText = await response.text();
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error(`Cloudinary returned non-JSON response: ${responseText.slice(0, 300)}`);
+  }
+
+  console.log('Cloudinary Basic Auth response:', JSON.stringify(data).slice(0, 300));
+
+  if (!response.ok || data.error) {
+    throw new Error('Cloudinary: ' + (data.error?.message || responseText));
+  }
+
+  if (!data.secure_url) {
+    throw new Error('Cloudinary: Upload succeeded but secure_url missing');
+  }
+
+  return data.secure_url;
+}
 // ── INSTALLER PROFILE SAVE ────────────────────────────────────────────────────
 app.post('/api/save-profile', upload.fields([
   { name: 'logo',     maxCount: 1 },
