@@ -312,8 +312,6 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
       pdfPath,
     });
 
-    const pdfBuffer = fs.readFileSync(pdfPath);
-
     console.log(`Job ${jobId}: Uploading PDF to Cloudinary...`);
      const pdfBuffer = fs.readFileSync(pdfPath);
     const pdfUrl = await uploadToCloudinary(
