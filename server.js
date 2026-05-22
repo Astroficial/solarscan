@@ -22,17 +22,34 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'static')));
 
 // ── CLOUDINARY ────────────────────────────────────────────────────────────────
+// Use single CLOUDINARY_URL to avoid API key / secret mismatch problems.
+
+const CLOUDINARY_URL = (process.env.CLOUDINARY_URL || '').trim();
+
+if (!CLOUDINARY_URL) {
+  throw new Error('CLOUDINARY_URL is missing in Railway variables');
+}
+
+const parsedCloudinaryUrl = new URL(CLOUDINARY_URL);
+
+const CLOUDINARY_API_KEY = parsedCloudinaryUrl.username;
+const CLOUDINARY_API_SECRET = parsedCloudinaryUrl.password;
+const CLOUDINARY_CLOUD_NAME = parsedCloudinaryUrl.hostname;
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure:     true,
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
+  secure: true,
 });
 
-console.log('Cloudinary cloud_name:', process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
-console.log('Cloudinary api_key:', process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING');
-console.log('Cloudinary api_secret:', process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING');
-
+console.log('SERVER VERSION: CLOUDINARY_URL FIX ACTIVE');
+console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
+console.log('Cloudinary api_key:', CLOUDINARY_API_KEY ? 'SET' : 'MISSING');
+console.log('Cloudinary api_secret:', CLOUDINARY_API_SECRET ? 'SET' : 'MISSING');
+console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
+console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
+console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
 // ── OPENAI ────────────────────────────────────────────────────────────────────
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
