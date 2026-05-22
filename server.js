@@ -302,23 +302,7 @@ const aiResult = await openai.images.edit({
     });
 
     // Upload PDF to Cloudinary
-    const pdfUrl = await uploadToCloudinary(
-  pdfBuffer,
-  'solarquote/pdfs',
-  `proposal_${jobId}`,
-  'raw'
-);
-        {
-          folder:        `solarquote/pdfs`,
-          public_id:     `proposal_${jobId}`,
-          resource_type: 'raw',
-          format:        'pdf',
-        },
-        (err, result) => err ? reject(err) : resolve(result.secure_url)
-      );
-      stream.end(pdfBuffer);
-    });
-
+  const pdfUrl = await uploadToCloudinary(pdfBuffer, 'solarquote/pdfs', `proposal_${jobId}`, 'raw');
     res.json({
       success:   true,
       job_id:    jobId,
