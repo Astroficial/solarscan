@@ -50,6 +50,14 @@ console.log('Cloudinary api_secret:', CLOUDINARY_API_SECRET ? 'SET' : 'MISSING')
 console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
 console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
 console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
+
+console.log('SERVER VERSION: CLOUDINARY_URL FIX ACTIVE');
+console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
+console.log('Cloudinary api_key:', CLOUDINARY_API_KEY ? 'SET' : 'MISSING');
+console.log('Cloudinary api_secret:', CLOUDINARY_API_SECRET ? 'SET' : 'MISSING');
+console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
+console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
+console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
 // ── OPENAI ────────────────────────────────────────────────────────────────────
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
