@@ -7,6 +7,17 @@ import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
 import { v2 as cloudinary } from 'cloudinary';
+import crypto from 'crypto';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure:     true,
+});
+console.log('Cloudinary cloud_name:', process.env.CLOUDINARY_CLOUD_NAME);
+console.log('Cloudinary api_key:', process.env.CLOUDINARY_API_KEY);
+console.log('Cloudinary secret length:', process.env.CLOUDINARY_API_SECRET?.length);
 import puppeteer from 'puppeteer';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -103,27 +114,35 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
 
 // ── CLOUDINARY UPLOAD ─────────────────────────────────────────────────────────
 async function uploadToCloudinary(buffer, folder, publicId) {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder,
-        public_id:     publicId,
-        overwrite:     true,
-        resource_type: 'image',
-        api_key:       process.env.CLOUDINARY_API_KEY,
-        cloud_name:    process.env.CLOUDINARY_CLOUD_NAME,
-      },
-      (err, result) => {
-        if (err) {
-          console.error('Cloudinary error:', JSON.stringify(err));
-          reject(err);
-        } else {
-          resolve(result.secure_url);
-        }
-      }
-    );
-    stream.end(buffer);
-  });
+  const timestamp   = Math.round(Date.now() / 1000);
+  const apiSecret   = process.env.CLOUDINARY_API_SECRET;
+  const apiKey      = process.env.CLOUDINARY_API_KEY;
+  const cloudName   = process.env.CLOUDINARY_CLOUD_NAME;
+
+  // Build string to sign
+  const paramStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}`;
+  const signature = crypto
+    .createHash('sha256')
+    .update(paramStr + apiSecret)
+    .digest('hex');
+
+  const formData = new FormData();
+  formData.append('file',       new Blob([buffer], { type: 'image/jpeg' }), 'upload.jpg');
+  formData.append('folder',     folder);
+  formData.append('public_id',  publicId);
+  formData.append('overwrite',  'true');
+  formData.append('timestamp',  String(timestamp));
+  formData.append('api_key',    apiKey);
+  formData.append('signature',  signature);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: 'POST', body: formData }
+  );
+
+  const data = await response.json();
+  if (data.error) throw new Error('Cloudinary: ' + data.error.message);
+  return data.secure_url;
 }
 
 // ── INSTALLER PROFILE SAVE ────────────────────────────────────────────────────
