@@ -32,3 +32,6 @@ aptPkgs = [
   "libxtst6",
   "xdg-utils"
 ]
+
+[start]
+cmd = "npm start"
