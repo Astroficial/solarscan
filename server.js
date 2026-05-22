@@ -36,12 +36,24 @@ const CLOUDINARY_API_KEY = parsedCloudinaryUrl.username;
 const CLOUDINARY_API_SECRET = parsedCloudinaryUrl.password;
 const CLOUDINARY_CLOUD_NAME = parsedCloudinaryUrl.hostname;
 
-cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
-  secure: true,
-});
+// ── CLOUDINARY ────────────────────────────────────────────────────────────────
+// Basic Auth upload is used to avoid Cloudinary Invalid Signature errors.
+
+const CLOUDINARY_CLOUD_NAME = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
+const CLOUDINARY_API_KEY = (process.env.CLOUDINARY_API_KEY || '').trim();
+const CLOUDINARY_API_SECRET = (process.env.CLOUDINARY_API_SECRET || '').trim();
+
+if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+  throw new Error('Cloudinary variables missing. Check Railway variables.');
+}
+
+console.log('SERVER VERSION: CLOUDINARY BASIC AUTH UPLOAD ACTIVE');
+console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
+console.log('Cloudinary api_key:', CLOUDINARY_API_KEY ? 'SET' : 'MISSING');
+console.log('Cloudinary api_secret:', CLOUDINARY_API_SECRET ? 'SET' : 'MISSING');
+console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
+console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
+console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
 
 console.log('SERVER VERSION: CLOUDINARY_URL FIX ACTIVE');
 console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
