@@ -120,7 +120,8 @@ async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'imag
   const cloudName  = process.env.CLOUDINARY_CLOUD_NAME;
 
   // Parameters MUST be alphabetical order, overwrite=1 not true
-  const paramStr = `folder=${folder}&overwrite=1&public_id=${publicId}&timestamp=${timestamp}`;
+ const encodedFolder = encodeURIComponent(folder);
+const paramStr = `folder=${encodedFolder}&overwrite=1&public_id=${publicId}&timestamp=${timestamp}`;
 
   const signature = crypto
     .createHash('sha1')
