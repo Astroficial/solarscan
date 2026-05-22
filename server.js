@@ -6,9 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
-import { v2 as cloudinary } from 'cloudinary';
 import puppeteer from 'puppeteer';
-console.log('SERVER VERSION: CLOUDINARY SDK FIX ACTIVE');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
@@ -22,22 +20,11 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'static')));
 
 // ── CLOUDINARY ────────────────────────────────────────────────────────────────
-// Use single CLOUDINARY_URL to avoid API key / secret mismatch problems.
-
-const CLOUDINARY_URL = (process.env.CLOUDINARY_URL || '').trim();
-
-if (!CLOUDINARY_URL) {
-  throw new Error('CLOUDINARY_URL is missing in Railway variables');
-}
-
-const parsedCloudinaryUrl = new URL(CLOUDINARY_URL);
-
-const CLOUDINARY_API_KEY = parsedCloudinaryUrl.username;
-const CLOUDINARY_API_SECRET = parsedCloudinaryUrl.password;
-const CLOUDINARY_CLOUD_NAME = parsedCloudinaryUrl.hostname;
-
-// ── CLOUDINARY ────────────────────────────────────────────────────────────────
 // Basic Auth upload is used to avoid Cloudinary Invalid Signature errors.
+// Keep these 3 Railway variables only:
+// CLOUDINARY_CLOUD_NAME
+// CLOUDINARY_API_KEY
+// CLOUDINARY_API_SECRET
 
 const CLOUDINARY_CLOUD_NAME = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
 const CLOUDINARY_API_KEY = (process.env.CLOUDINARY_API_KEY || '').trim();
@@ -55,21 +42,6 @@ console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
 console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
 console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
 
-console.log('SERVER VERSION: CLOUDINARY_URL FIX ACTIVE');
-console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
-console.log('Cloudinary api_key:', CLOUDINARY_API_KEY ? 'SET' : 'MISSING');
-console.log('Cloudinary api_secret:', CLOUDINARY_API_SECRET ? 'SET' : 'MISSING');
-console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
-console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
-console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
-
-console.log('SERVER VERSION: CLOUDINARY_URL FIX ACTIVE');
-console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING');
-console.log('Cloudinary api_key:', CLOUDINARY_API_KEY ? 'SET' : 'MISSING');
-console.log('Cloudinary api_secret:', CLOUDINARY_API_SECRET ? 'SET' : 'MISSING');
-console.log('Cloudinary cloud_name length:', CLOUDINARY_CLOUD_NAME.length);
-console.log('Cloudinary api_key length:', CLOUDINARY_API_KEY.length);
-console.log('Cloudinary api_secret length:', CLOUDINARY_API_SECRET.length);
 // ── OPENAI ────────────────────────────────────────────────────────────────────
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
