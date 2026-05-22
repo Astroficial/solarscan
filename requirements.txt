@@ -6,3 +6,4 @@ requests
 reportlab
 openai
 gunicorn
+cloudinary
