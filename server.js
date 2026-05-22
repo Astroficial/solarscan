@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
 import { v2 as cloudinary } from 'cloudinary';
 import puppeteer from 'puppeteer';
-
+console.log('SERVER VERSION: CLOUDINARY SDK FIX ACTIVE');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
