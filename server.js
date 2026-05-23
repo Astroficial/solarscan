@@ -979,39 +979,57 @@ if (installer.logo_url) {
 </html>`;
 
   const browser = await puppeteer.launch({
-    headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process',
-    ],
-  });
+  headless: 'new',
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--no-first-run',
+    '--no-zygote',
+    '--single-process',
+    '--disable-web-security',
+    '--disable-features=IsolateOrigins,site-per-process',
+  ],
+});
 
-  const page = await browser.newPage();
+const page = await browser.newPage();
 
-  await page.setContent(html, {
-    waitUntil: 'networkidle0',
-    timeout: 60000,
-  });
+page.setDefaultTimeout(120000);
+page.setDefaultNavigationTimeout(120000);
 
-  await page.pdf({
-    path:            pdfPath,
-    format:          'A4',
-    printBackground: true,
-    margin:          {
-      top:    0,
-      right:  0,
-      bottom: 0,
-      left:   0,
-    },
-  });
+page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
 
-  await browser.close();
+await page.setContent(html, {
+  waitUntil: 'networkidle0',
+  timeout: 90000,
+});
+
+await new Promise(resolve => setTimeout(resolve, 3000));
+
+const pdfBuffer = await page.pdf({
+  format: 'A4',
+  printBackground: true,
+  margin: {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+});
+
+await browser.close();
+
+console.log(`PDF generated, size: ${pdfBuffer.length} bytes`);
+
+fs.writeFileSync(pdfPath, pdfBuffer);
+
+if (!pdfBuffer || pdfBuffer.length < 1000) {
+  throw new Error(`Generated PDF is invalid or too small. Size: ${pdfBuffer?.length || 0} bytes`);
 }
+
+return pdfBuffer;
 
 // ── SERVE STATIC ──────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
