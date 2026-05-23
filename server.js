@@ -334,26 +334,32 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
 
     const pdfPath = path.join(jobDir, 'proposal.pdf');
 
-    await generatePDF({
-      installer,
-      customer,
-      fin,
-      panelBrand,
-      inverterBrand,
-      panelCount,
-      aiImageUrl,
-      jobId,
-      pdfPath,
-    });
+const pdfBuffer = await generatePDF({
+  installer,
+  customer,
+  fin,
+  panelBrand,
+  inverterBrand,
+  panelCount,
+  aiImageUrl,
+  jobId,
+  pdfPath,
+});
 
-    console.log(`Job ${jobId}: Uploading PDF to Cloudinary...`);
-     const pdfBuffer = fs.readFileSync(pdfPath);
-    const pdfUrl = await uploadToCloudinary(
-      pdfBuffer,
-      'solarscan/pdfs',
-      `proposal_${jobId}`,
-      'raw'
-    );
+console.log('PDF buffer size before upload:', pdfBuffer.length);
+
+if (!pdfBuffer || pdfBuffer.length < 1000) {
+  throw new Error(`PDF buffer invalid before upload. Size: ${pdfBuffer?.length || 0} bytes`);
+}
+
+console.log(`Job ${jobId}: Uploading PDF to Cloudinary...`);
+
+const pdfUrl = await uploadToCloudinary(
+  pdfBuffer,
+  'solarscan/pdfs',
+  `proposal_${jobId}`,
+  'raw'
+);
 
     res.json({
       success:    true,
