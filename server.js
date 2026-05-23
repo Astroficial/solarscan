@@ -400,7 +400,20 @@ async function generatePDF({
 
   const proposalNo = `SP-${new Date().getFullYear()}-${jobId.toUpperCase()}`;
 
-  const projects = installer.projects || [];
+  const aiImageUrlOptimized = optimizeCloudinaryImage(aiImageUrl, 1200);
+
+const projects = (installer.projects || []).map(p => {
+  if (!p) return p;
+
+  return {
+    ...p,
+    photo_url: optimizeCloudinaryImage(p.photo_url, 900),
+  };
+});
+
+if (installer.logo_url) {
+  installer.logo_url = optimizeCloudinaryImage(installer.logo_url, 300);
+}
 
   const projectCards = (p, idx) => {
     if (!p) return '';
