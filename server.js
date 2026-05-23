@@ -308,7 +308,7 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
     );
 
     const aiResult = await openai.images.edit({
-      model:  'gpt-image-1',
+      model:  'gpt-image-2',
       image:  imageFile,
       prompt,
       n:      1,
