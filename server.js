@@ -1030,6 +1030,7 @@ if (!pdfBuffer || pdfBuffer.length < 1000) {
 }
 
 return pdfBuffer;
+}
 
 // ── SERVE STATIC ──────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
