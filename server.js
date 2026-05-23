@@ -308,13 +308,13 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
     );
 
     const aiResult = await openai.images.edit({
-      model:  'gpt-image-2',
-      image:  imageFile,
-      prompt,
-      n:      1,
-      size:   '1024x1024',
-    });
-
+  model:  'gpt-image-2',
+  image:  imageFile,
+  prompt,
+  n:      1,
+  size:   '1024x1024',
+  quality: 'medium',
+});
     const imageBuffer = Buffer.from(aiResult.data[0].b64_json, 'base64');
     const resultPath  = path.join(jobDir, 'result.jpg');
     fs.writeFileSync(resultPath, imageBuffer);
