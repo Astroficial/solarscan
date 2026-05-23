@@ -1,5 +1,6 @@
 FROM node:20-bookworm-slim
 
+# Install Chrome/Puppeteer required Linux libraries
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     fonts-liberation \
@@ -35,7 +36,6 @@ RUN apt-get update && apt-get install -y \
     libxtst6 \
     wget \
     xdg-utils \
-    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -47,6 +47,5 @@ RUN npm install
 COPY . .
 
 ENV NODE_ENV=production
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
