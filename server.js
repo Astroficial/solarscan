@@ -626,7 +626,7 @@ if (installer.logo_url) {
     </div>
 
     <div style="flex:1;width:100%;border:4px solid #8BC34A;border-radius:24px;overflow:hidden;position:relative;min-height:200px;">
-      <img src="${aiImageUrl}" style="width:100%;height:100%;object-fit:cover;" />
+      <img src="${aiImageUrlOptimized}" style="width:100%;height:100%;object-fit:cover;" />
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.3),transparent);"></div>
     </div>
 
@@ -735,7 +735,7 @@ if (installer.logo_url) {
     </div>
 
     <div style="background:white;border-radius:28px;padding:18px;box-shadow:0 16px 40px rgba(0,0,0,0.12);">
-      <img src="${aiImageUrl}" style="width:100%;height:520px;object-fit:cover;border-radius:20px;" />
+      <img src="${aiImageUrlOptimized}" style="width:100%;height:520px;object-fit:cover;border-radius:20px;" />
     </div>
 
     <div style="margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
