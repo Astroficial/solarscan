@@ -80,7 +80,14 @@ function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
     `Strict negative instructions: do not create one continuous solar sheet. Do not merge panels. Do not change exact panel count. Do not ignore red support guide lines. Do not create floating panels. Do not paste another image. Do not distort roof or background. Do not add unrelated objects.`
   );
 }
+function optimizeCloudinaryImage(url, width = 1000) {
+  if (!url || !url.includes('/upload/')) return url;
 
+  return url.replace(
+    '/upload/',
+    `/upload/f_jpg,q_auto:eco,w_${width}/`
+  );
+}
 function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
   const netCost      = quotedPrice - subsidyAmount;
   const yearlyKwh    = systemKw * 1500;
