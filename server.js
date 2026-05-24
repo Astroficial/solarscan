@@ -351,26 +351,45 @@ const aiResult = await openai.images.edit({
 async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand, panelCount, aiImageUrl, jobId, pdfPath }) {
 
   // Convert image to base64 — try local file first, then URL
-  async function imgToBase64(url, localPath) {
-    // Local file
-    if (localPath && fs.existsSync(localPath)) {
-      try {
-        const buf = fs.readFileSync(localPath);
-        console.log(`Image from local file: ${localPath} (${buf.length} bytes)`);
-        return `data:image/jpeg;base64,${buf.toString('base64')}`;
-      } catch(e) { console.log('Local read failed:', e.message); }
-    }
-    // URL fetch
-    if (!url) return null;
+async function imgToBase64(url, localPath) {
+  let buf = null;
+
+  // Try local file first
+  if (localPath && fs.existsSync(localPath)) {
+    try {
+      buf = fs.readFileSync(localPath);
+      console.log(`Image from local file: ${localPath} (${buf.length} bytes)`);
+    } catch(e) { console.log('Local read failed:', e.message); }
+  }
+
+  // Fallback to URL
+  if (!buf && url) {
     try {
       const r = await fetch(url);
-      if (!r.ok) { console.log(`URL fetch failed ${r.status}: ${url}`); return null; }
-      const buf  = Buffer.from(await r.arrayBuffer());
-      const mime = r.headers.get('content-type') || 'image/jpeg';
-      console.log(`Image from URL: ${url} (${buf.length} bytes)`);
-      return `data:${mime};base64,${buf.toString('base64')}`;
-    } catch(e) { console.log('URL fetch error:', e.message); return null; }
+      if (r.ok) {
+        buf = Buffer.from(await r.arrayBuffer());
+        console.log(`Image from URL: ${url} (${buf.length} bytes)`);
+      }
+    } catch(e) { console.log('URL fetch error:', e.message); }
   }
+
+  if (!buf) return null;
+
+  // Compress using Cloudinary transformation URL if available
+  if (url && url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    try {
+      const compressedUrl = url.replace('/upload/', '/upload/w_600,h_400,c_fill,q_60,f_jpg/');
+      const r = await fetch(compressedUrl);
+      if (r.ok) {
+        const compBuf = Buffer.from(await r.arrayBuffer());
+        console.log(`Compressed image: ${compBuf.length} bytes (was ${buf.length})`);
+        return `data:image/jpeg;base64,${compBuf.toString('base64')}`;
+      }
+    } catch(e) { console.log('Compression fetch failed:', e.message); }
+  }
+
+  return `data:image/jpeg;base64,${buf.toString('base64')}`;
+}
 
   // Pre-fetch all images as base64
   console.log('Fetching images as base64...');
