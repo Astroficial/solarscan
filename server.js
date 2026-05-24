@@ -226,9 +226,8 @@ app.post('/api/save-profile', upload.fields([
 // ── INSTALLER PROFILE LOAD ────────────────────────────────────────────────────
 app.get('/api/load-profile', (req, res) => {
   try {
-    const installerId  = req.query.installer_id || 'default';
-    const profilePath  = path.join(TMP, `profile_${installerId}.json`);
-
+    const installerId = req.query.installer_id || 'default';
+    const profilePath = path.join(TMP, `profile_${installerId}.json`);
     if (fs.existsSync(profilePath)) {
       const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
       res.json({ success: true, profile });
@@ -236,7 +235,6 @@ app.get('/api/load-profile', (req, res) => {
       res.json({ success: true, profile: null });
     }
   } catch (err) {
-    console.error('Load profile error:', err);
     res.status(500).json({ error: err.message });
   }
 });
