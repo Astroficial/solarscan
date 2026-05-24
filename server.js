@@ -228,16 +228,33 @@ res.json({ success: true, profile });
 });
 
 // ── INSTALLER PROFILE LOAD ────────────────────────────────────────────────────
-app.get('/api/load-profile', (req, res) => {
+app.get('/api/load-profile', async (req, res) => {
   try {
     const installerId = req.query.installer_id || 'default';
     const profilePath = path.join(TMP, `profile_${installerId}.json`);
+
+    // Check /tmp first
     if (fs.existsSync(profilePath)) {
       const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
-      res.json({ success: true, profile });
-    } else {
-      res.json({ success: true, profile: null });
+      return res.json({ success: true, profile });
     }
+
+    // Fallback: fetch from Cloudinary
+    console.log(`Profile not in /tmp, fetching from Cloudinary...`);
+    const cloudinaryUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/solarscan/${installerId}/profile`;
+    try {
+      const response = await fetch(cloudinaryUrl);
+      if (response.ok) {
+        const profile = await response.json();
+        fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+        console.log(`Profile restored from Cloudinary for ${installerId}`);
+        return res.json({ success: true, profile });
+      }
+    } catch (e) {
+      console.log('Cloudinary profile fetch failed:', e.message);
+    }
+
+    res.json({ success: true, profile: null });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
