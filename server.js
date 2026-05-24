@@ -128,8 +128,12 @@ async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'imag
 
   const formData = new FormData();
 
-  const fileName = resourceType === 'raw' ? `${publicId}.pdf` : `${publicId}.jpg`;
-  const fileType = resourceType === 'raw' ? 'application/pdf' : 'image/jpeg';
+const fileName = resourceType === 'raw'
+  ? (publicId.includes('profile') ? `${publicId}.json` : `${publicId}.pdf`)
+  : `${publicId}.jpg`;
+const fileType = resourceType === 'raw'
+  ? (publicId.includes('profile') ? 'application/json' : 'application/pdf')
+  : 'image/jpeg';
 
   formData.append(
     'file',
