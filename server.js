@@ -299,24 +299,42 @@ try {
 
     const profilePath = path.join(TMP, `profile_${installerId}.json`);
 
-    const installer = fs.existsSync(profilePath)
-      ? JSON.parse(fs.readFileSync(profilePath, 'utf8'))
-      : {
-          company_name: req.body.installer_name || 'Solar Installer',
-          phone:        req.body.installer_phone || '',
-          email:        req.body.installer_email || '',
-          website:      '',
-          address:      '',
-          gst:          '',
-          years:        '5+',
-          total_kw:     '500+',
-          bank_name:    '',
-          account_no:   '',
-          ifsc:         '',
-          upi:          '',
-          logo_url:     '',
-          projects:     [],
-        };
+let installer;
+if (fs.existsSync(profilePath)) {
+  installer = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+  console.log(`Profile loaded from /tmp. Projects count: ${installer.projects?.length || 0}`);
+  console.log(`Project 0 name: ${installer.projects?.[0]?.name || 'EMPTY'}`);
+  console.log(`Project 0 photo_url: ${installer.projects?.[0]?.photo_url || 'NONE'}`);
+} else {
+  console.log(`Profile NOT found in /tmp. Trying Cloudinary...`);
+  const cloudinaryUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/solarscan/${installerId}/profile`;
+  try {
+    const response = await fetch(cloudinaryUrl);
+    if (response.ok) {
+      installer = await response.json();
+      fs.writeFileSync(profilePath, JSON.stringify(installer, null, 2));
+      console.log(`Profile restored from Cloudinary. Projects: ${installer.projects?.length || 0}`);
+      console.log(`Project 0 name: ${installer.projects?.[0]?.name || 'EMPTY'}`);
+    } else {
+      console.log(`Cloudinary profile fetch failed: ${response.status}`);
+      installer = null;
+    }
+  } catch (e) {
+    console.log(`Cloudinary fetch error: ${e.message}`);
+    installer = null;
+  }
+
+  if (!installer) {
+    installer = {
+      company_name: 'Solar Installer',
+      phone: '', email: '', website: '',
+      address: '', gst: '', years: '5+',
+      total_kw: '500+', bank_name: '',
+      account_no: '', ifsc: '', upi: '',
+      logo_url: '', projects: [],
+    };
+  }
+}
 
     const photoPath = path.join(jobDir, 'roof_marked.jpg');
     fs.writeFileSync(photoPath, req.file.buffer);
