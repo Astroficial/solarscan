@@ -430,6 +430,37 @@ const pdfUrl = await uploadToCloudinary(
 // ── PDF GENERATION ────────────────────────────────────────────────────────────
 async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand, panelCount, aiImageUrl, jobId, pdfPath }) {
 
+  // ── PRE-FETCH ALL IMAGES AS BASE64 ─────────────────────────────────
+  async function urlToBase64(url) {
+    if (!url) return null;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const buffer = await res.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const mime = res.headers.get('content-type') || 'image/jpeg';
+      return `data:${mime};base64,${base64}`;
+    } catch (e) {
+      console.log('Image fetch failed:', url, e.message);
+      return null;
+    }
+  }
+
+  // Fetch AI image and all project photos as base64
+  const [aiImageBase64, ...projectPhotoBase64] = await Promise.all([
+    urlToBase64(aiImageUrl),
+    ...( installer.projects || [] ).map(p => urlToBase64(p?.photo_url)),
+  ]);
+
+  // Replace URLs with base64 in projects
+  const projects = (installer.projects || []).map((p, i) => ({
+    ...p,
+    photo_url: projectPhotoBase64[i] || null,
+  }));
+
+  const aiImageSrc = aiImageBase64 || aiImageUrl;
+  // ────────────────────────────────────────────────────────────────────
+
   const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const validDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const proposalNo = `SP-${new Date().getFullYear()}-${jobId.toUpperCase()}`;
