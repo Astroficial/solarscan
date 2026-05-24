@@ -464,7 +464,7 @@ async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand
   const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const validDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const proposalNo = `SP-${new Date().getFullYear()}-${jobId.toUpperCase()}`;
-  const projects = installer.projects || [];
+  
 
   const projectCard = (p, idx) => {
     if (!p || !p.name) return `
@@ -613,7 +613,7 @@ async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand
       <div style="font-size:52px;font-weight:900;color:white;line-height:1.1;">CLEAN ENERGY<br/>PROPOSAL</div>
     </div>
     <div style="flex:1;width:100%;border:4px solid #8BC34A;border-radius:24px;overflow:hidden;position:relative;min-height:220px;">
-      <img src="${aiImageUrl}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
+      <img src="${aiImageSrc}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.3),transparent);"></div>
     </div>
     <div style="margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;">
@@ -747,7 +747,7 @@ async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand
   ${sectionHeader('Technical Overview', 'Proposed System Design')}
   <div style="padding:28px 48px;">
     <div style="width:100%;height:340px;border-radius:20px;overflow:hidden;border:2px solid #C8E6C9;margin-bottom:24px;position:relative;">
-      <img src="${aiImageUrl}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
+      <img src="${aiImageSrc}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4),transparent);"></div>
       <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:white;font-weight:700;font-size:13px;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;">AI Generated — Your Actual Roof View</div>
     </div>
