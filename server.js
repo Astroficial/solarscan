@@ -317,7 +317,10 @@ try {
   size:   '1024x1024',
   quality: 'medium',
 });
-    const imageBuffer = Buffer.from(aiResult.data[0].b64_json, 'base64');
+    if (!aiResult.data || !aiResult.data[0] || !aiResult.data[0].b64_json) {
+  throw new Error('OpenAI returned empty image data');
+}
+const imageBuffer = Buffer.from(aiResult.data[0].b64_json, 'base64');
     const resultPath  = path.join(jobDir, 'result.jpg');
     fs.writeFileSync(resultPath, imageBuffer);
 
