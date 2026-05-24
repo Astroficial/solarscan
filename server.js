@@ -378,223 +378,132 @@ const pdfUrl = await uploadToCloudinary(
 });
 
 // ── PDF GENERATION ────────────────────────────────────────────────────────────
-async function generatePDF({
-  installer,
-  customer,
-  fin,
-  panelBrand,
-  inverterBrand,
-  panelCount,
-  aiImageUrl,
-  jobId,
-  pdfPath,
-}) {
-  const today = new Date().toLocaleDateString('en-IN', {
-    day:   '2-digit',
-    month: 'short',
-    year:  'numeric',
-  });
+async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand, panelCount, aiImageUrl, jobId, pdfPath }) {
 
-  const validDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    .toLocaleDateString('en-IN', {
-      day:   '2-digit',
-      month: 'short',
-      year:  'numeric',
-    });
-
+  const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const validDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const proposalNo = `SP-${new Date().getFullYear()}-${jobId.toUpperCase()}`;
+  const projects = installer.projects || [];
 
-  const aiImageUrlOptimized = optimizeCloudinaryImage(aiImageUrl, 1200);
+  const projectCard = (p, idx) => {
+    if (!p || !p.name) return `
+      <div style="flex:1;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
+        <div style="height:220px;background:linear-gradient(135deg,#1B5E20,#2E7D32);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:48px;margin-bottom:12px;">📷</div>
+          <div style="font-size:18px;font-weight:900;color:white;">Project ${idx+1}</div>
+        </div>
+        <div style="padding:20px;flex:1;">
+          <div style="font-size:13px;color:#4A6741;">No project data added</div>
+        </div>
+      </div>`;
 
-const projects = (installer.projects || []).map(p => {
-  if (!p) return p;
-
-  return {
-    ...p,
-    photo_url: optimizeCloudinaryImage(p.photo_url, 900),
-  };
-});
-
-if (installer.logo_url) {
-  installer.logo_url = optimizeCloudinaryImage(installer.logo_url, 300);
-}
-
-  const projectCards = (p, idx) => {
-    if (!p) return '';
-
-    const bgImg = p.photo_url
+    const imgStyle = p.photo_url
       ? `background-image:url('${p.photo_url}');background-size:cover;background-position:center;`
       : `background:linear-gradient(135deg,#1B5E20,#2E7D32);`;
 
     return `
-      <div style="flex:1;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
-        <div style="height:220px;position:relative;${bgImg}display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          ${!p.photo_url ? `
-            <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(27,94,32,0.8),rgba(46,125,50,0.8));"></div>
-            <div style="position:relative;z-index:2;text-align:center;color:white;">
-              <div style="font-size:40px;margin-bottom:8px;">📷</div>
-              <div style="font-size:22px;font-weight:900;">${p.name || 'Project ' + (idx + 1)}</div>
-              <div style="font-size:13px;margin-top:4px;">📍 ${p.city || ''}</div>
-            </div>
-          ` : `
-            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);"></div>
-            <div style="position:absolute;bottom:16px;left:16px;right:16px;color:white;">
-              <div style="font-size:20px;font-weight:900;">${p.name || ''}</div>
-              <div style="font-size:12px;margin-top:2px;">📍 ${p.city || ''}</div>
-            </div>
-          `}
+      <div style="flex:1;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="height:220px;position:relative;${imgStyle}">
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65),transparent);"></div>
+          <div style="position:absolute;bottom:16px;left:16px;right:16px;color:white;">
+            <div style="font-size:20px;font-weight:900;">${p.name || ''}</div>
+            <div style="font-size:12px;margin-top:3px;opacity:0.9;">📍 ${p.city || ''}</div>
+          </div>
         </div>
-
         <div style="padding:20px;flex:1;display:flex;flex-direction:column;">
           <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-            <span style="background:#F9A825;color:#1B5E20;font-size:11px;font-weight:900;padding:4px 12px;border-radius:20px;">${p.capacity || '5 kW'} System</span>
+            <span style="background:#F9A825;color:#1B5E20;font-size:11px;font-weight:900;padding:4px 12px;border-radius:20px;">${p.cap || p.capacity || '5 kW'} System</span>
             <span style="background:#F1F8E9;color:#2E7D32;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #C8E6C9;">${p.roof || 'Flat RCC'}</span>
           </div>
-          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:8px;">⚡ ${p.kwh || '7,500 kWh/year'} estimated</div>
-          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:8px;">📅 Installed: ${p.date || '2025'}</div>
-          <div style="font-size:12px;color:#4A6741;font-weight:700;">⭐ Rating: ${p.rating || '4.9/5'}</div>
-
+          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">⚡ ${p.kwh || '7,500 kWh/year'} estimated</div>
+          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">📅 Installed: ${p.date || '2025'}</div>
+          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:12px;">⭐ Rating: ${p.rating || '4.9/5'}</div>
           ${p.quote ? `
             <div style="margin-top:auto;border-top:1px solid #C8E6C9;padding-top:12px;">
               <div style="font-size:11px;color:#4A6741;font-style:italic;">"${p.quote}"</div>
-              <div style="font-size:10px;color:#2E7D32;font-weight:900;margin-top:4px;">— ${p.quote_author || ''}</div>
-            </div>
-          ` : ''}
+              <div style="font-size:10px;color:#2E7D32;font-weight:900;margin-top:4px;">— ${p.quote_author || p.quoteAuthor || ''}</div>
+            </div>` : ''}
         </div>
-      </div>
-    `;
+      </div>`;
   };
 
-  const proj0 = projectCards(projects[0], 0);
-  const proj1 = projectCards(projects[1], 1);
-  const proj2 = projectCards(projects[2], 2);
-  const proj3 = projectCards(projects[3], 3);
-  const proj4 = projectCards(projects[4], 4);
-  const proj5 = projectCards(projects[5], 5);
+  const sectionHeader = (subtitle, title) => `
+    <div style="background:#1B5E20;padding:40px 48px;color:white;position:relative;overflow:hidden;">
+      <div style="font-size:12px;font-weight:700;color:#F9A825;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">🌱 ${subtitle}</div>
+      <div style="font-size:32px;font-weight:900;">${title}</div>
+    </div>`;
 
   const monthlyData = [
-    { m: 'Jan', v: 450 },
-    { m: 'Feb', v: 520 },
-    { m: 'Mar', v: 650 },
-    { m: 'Apr', v: 720 },
-    { m: 'May', v: 750 },
-    { m: 'Jun', v: 750 },
-    { m: 'Jul', v: 600 },
-    { m: 'Aug', v: 550 },
-    { m: 'Sep', v: 580 },
-    { m: 'Oct', v: 620 },
-    { m: 'Nov', v: 500 },
-    { m: 'Dec', v: 450 },
+    {m:'Jan',v:450},{m:'Feb',v:520},{m:'Mar',v:650},{m:'Apr',v:720},
+    {m:'May',v:750},{m:'Jun',v:750},{m:'Jul',v:600},{m:'Aug',v:550},
+    {m:'Sep',v:580},{m:'Oct',v:620},{m:'Nov',v:500},{m:'Dec',v:450}
   ];
-
-  const maxV = 750;
 
   const chartBars = monthlyData.map(d => `
     <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-      <div style="width:100%;max-width:18px;height:${Math.round((d.v / maxV) * 80)}px;background:linear-gradient(to top,#8BC34A,#1B5E20);border-radius:2px 2px 0 0;"></div>
+      <div style="width:100%;max-width:18px;height:${Math.round((d.v/750)*80)}px;background:linear-gradient(to top,#8BC34A,#1B5E20);border-radius:2px 2px 0 0;margin:0 auto;"></div>
       <div style="font-size:8px;font-weight:700;color:#4A6741;margin-top:4px;">${d.m}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 
   const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: white; }
-
-  .page {
-    width: 210mm;
-    min-height: 297mm;
-    position: relative;
-    overflow: hidden;
-    page-break-after: always;
-    display: flex;
-    flex-direction: column;
-  }
-
-  @media print {
-    .page { page-break-after: always; }
-    body { margin: 0; }
-  }
-
-  .page-footer {
-    position: absolute;
-    bottom: 20px;
-    right: 40px;
-    font-size: 9px;
-    font-weight: 700;
-    color: #4A6741;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.6;
-  }
-
-  table { border-collapse: collapse; width: 100%; }
-  td, th { padding: 0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,'Segoe UI',Arial,sans-serif; background:white; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .page { width:210mm; min-height:297mm; position:relative; overflow:hidden; page-break-after:always; display:flex; flex-direction:column; }
+  table { border-collapse:collapse; width:100%; }
 </style>
 </head>
 <body>
 
-<!-- PAGE 0: INTRO -->
+<!-- PAGE 0: DARK INTRO -->
 <div class="page" style="background:#1A2F1A;">
-  <div style="position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(#fff 1.5px,transparent 1.5px);background-size:16px 16px;pointer-events:none;"></div>
-
+  <div style="position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(#fff 1.5px,transparent 1.5px);background-size:16px 16px;"></div>
   <div style="position:relative;height:48%;width:100%;">
     <div style="position:absolute;top:0;left:0;width:45%;height:96px;background:#F9A825;clip-path:polygon(0 0,100% 0,0 100%);z-index:2;"></div>
-
     <div style="position:absolute;top:0;right:0;width:45%;height:128px;background:#2E7D32;clip-path:polygon(20% 0,100% 0,100% 100%,0 100%);z-index:2;display:flex;align-items:flex-start;justify-content:flex-end;padding:28px;">
-      <div style="text-align:right;color:white;display:flex;align-items:center;gap:12px;">
-        <div>
-          <div style="font-weight:900;font-size:18px;line-height:1;">SURYA</div>
-          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.9;">Company</div>
+      <div style="display:flex;align-items:center;gap:12px;color:white;">
+        <div style="text-align:right;">
+          <div style="font-weight:900;font-size:18px;">${installer.company_name || 'SURYA POWER'}</div>
+          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.9;">Solutions</div>
         </div>
         <div style="width:40px;height:40px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">🌿</div>
       </div>
     </div>
-
     <div style="position:absolute;top:80px;right:0;width:96px;height:100%;background:#F9A825;clip-path:polygon(100% 0,100% 100%,0 40%);z-index:0;"></div>
-
     <div style="position:absolute;inset:0;z-index:1;background:#1B5E20;border-radius:0 0 96px 0;overflow:hidden;">
-      <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200&q=80"
-           style="width:100%;height:100%;object-fit:cover;object-position:bottom;" />
+      <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200&q=80" style="width:100%;height:100%;object-fit:cover;object-position:bottom;" />
       <div style="position:absolute;inset:0;background:rgba(27,94,32,0.2);"></div>
     </div>
   </div>
-
-  <div style="padding:24px 48px 48px;display:flex;flex-direction:column;flex:1;">
+  <div style="padding:24px 48px 48px;display:flex;flex-direction:column;flex:1;position:relative;z-index:1;">
     <div style="text-align:right;margin-top:16px;">
-      <div style="font-size:60px;font-weight:900;font-style:italic;color:white;line-height:0.85;letter-spacing:-2px;transform:skewX(-6deg);display:inline-block;">Sustainable</div><br/>
-      <div style="font-size:60px;font-weight:900;font-style:italic;color:#F9A825;line-height:0.85;letter-spacing:-2px;transform:skewX(-6deg);display:inline-block;margin-top:8px;">Energy Future</div>
-      <div style="color:#C8E6C9;font-size:13px;margin-top:20px;max-width:280px;margin-left:auto;line-height:1.6;">Invest in advanced solar technology, enhancing your property's value while embracing sustainable living.</div>
+      <div style="font-size:58px;font-weight:900;font-style:italic;color:white;line-height:0.9;letter-spacing:-2px;">Sustainable</div>
+      <div style="font-size:58px;font-weight:900;font-style:italic;color:#F9A825;line-height:0.9;letter-spacing:-2px;margin-top:8px;">Energy Future</div>
+      <div style="color:#C8E6C9;font-size:13px;margin-top:20px;max-width:280px;margin-left:auto;line-height:1.6;">Invest in advanced solar technology, enhancing your property value while embracing sustainable living.</div>
     </div>
-
     <div style="margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:flex-end;">
       <div>
         <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Contact Us:</div>
-
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;">📞</div>
+          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">📞</div>
           <span style="color:white;font-weight:600;">${installer.phone || '+91 98765 43210'}</span>
         </div>
-
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
-          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;">🌐</div>
-          <span style="color:white;font-weight:600;">${installer.website || '@suryapower'}</span>
+          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">🌐</div>
+          <span style="color:white;font-weight:600;">${installer.website || 'www.suryapower.com'}</span>
         </div>
-
         <div style="background:#F9A825;color:#1A2F1A;font-weight:900;text-transform:uppercase;letter-spacing:2px;font-size:12px;padding:10px 28px;display:inline-block;border-radius:4px;">Learn More</div>
       </div>
-
       <div style="text-align:right;">
         <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Our Service 🌱</div>
         ${['Energy Consultation','System Maintenance','Solar Panel Installation','Battery & Inverter Setup'].map(s => `
           <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px;">
             <span style="color:#C8E6C9;font-weight:600;font-size:13px;">${s}</span>
             <div style="width:20px;height:20px;background:#8BC34A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;flex-shrink:0;">✓</div>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
     </div>
   </div>
@@ -603,372 +512,437 @@ if (installer.logo_url) {
 <!-- PAGE 1: COVER -->
 <div class="page" style="background:#F1F8E9;">
   <div style="position:absolute;top:0;left:0;width:100%;height:55%;background:#1B5E20;border-radius:0 0 96px 96px;z-index:0;"></div>
-
   <div style="padding:48px;display:flex;flex-direction:column;height:100%;position:relative;z-index:1;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
       <div style="display:flex;align-items:center;gap:10px;color:white;">
-        ${installer.logo_url
-          ? `<img src="${installer.logo_url}" style="height:40px;width:40px;border-radius:50%;object-fit:cover;" />`
-          : `<span style="font-size:28px;">🌿</span>`
-        }
+        ${installer.logo_url ? `<img src="${installer.logo_url}" style="height:44px;width:44px;border-radius:50%;object-fit:cover;border:2px solid #8BC34A;" />` : `<span style="font-size:32px;">🌿</span>`}
         <div>
-          <div style="font-weight:900;font-size:20px;line-height:1;">${installer.company_name || 'SURYA POWER'}</div>
+          <div style="font-weight:900;font-size:22px;line-height:1;">${installer.company_name || 'SURYA POWER'}</div>
           <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;">Solutions</div>
         </div>
       </div>
-
       <div style="text-align:right;">
         <div style="color:#C8E6C9;font-size:12px;">Proposal No: ${proposalNo}</div>
         <div style="color:#C8E6C9;font-size:12px;">Date: ${today}</div>
         <div style="color:#C8E6C9;font-size:12px;">Valid Until: ${validDate}</div>
       </div>
     </div>
-
     <div style="margin-bottom:24px;">
       <div style="color:#F9A825;font-weight:700;letter-spacing:3px;text-transform:uppercase;font-size:13px;margin-bottom:12px;">🌿 India's Trusted Rooftop Solar EPC</div>
       <div style="font-size:52px;font-weight:900;color:white;line-height:1.1;">CLEAN ENERGY<br/>PROPOSAL</div>
     </div>
-
-    <div style="flex:1;width:100%;border:4px solid #8BC34A;border-radius:24px;overflow:hidden;position:relative;min-height:200px;">
-      <img src="${aiImageUrlOptimized}" style="width:100%;height:100%;object-fit:cover;" />
+    <div style="flex:1;width:100%;border:4px solid #8BC34A;border-radius:24px;overflow:hidden;position:relative;min-height:220px;">
+      <img src="${aiImageUrl}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.3),transparent);"></div>
     </div>
-
     <div style="margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;">
-      <div style="background:white;padding:22px 28px;border-radius:20px;flex:1;box-shadow:0 10px 30px rgba(0,0,0,0.12);">
-        <div style="font-size:12px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Prepared For</div>
-        <div style="font-size:26px;font-weight:900;color:#1B5E20;">${customer.name || 'Homeowner'}</div>
-        <div style="font-size:13px;color:#4A6741;margin-top:6px;">${customer.address || 'Customer Address'}</div>
+      <div style="background:white;padding:20px 24px;border-radius:16px;border:1px solid #C8E6C9;flex:1;max-width:420px;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
+        <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Prepared Exclusively For:</div>
+        <div style="font-size:22px;font-weight:900;color:#1A2F1A;margin-bottom:4px;">${customer.name}</div>
+        <div style="font-size:12px;color:#4A6741;margin-bottom:12px;">${customer.address || ''}</div>
+        <div style="height:1px;background:#C8E6C9;margin-bottom:12px;"></div>
+        <div style="font-size:13px;font-weight:700;color:#1B5E20;">System Size: <span style="color:#F9A825;font-weight:900;font-size:18px;background:#1B5E20;padding:2px 12px;border-radius:6px;">${fin.systemKw} kW</span></div>
       </div>
-
-      <div style="background:#F9A825;color:#1A2F1A;padding:22px 28px;border-radius:20px;text-align:center;min-width:180px;box-shadow:0 10px 30px rgba(0,0,0,0.12);">
-        <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">System Size</div>
-        <div style="font-size:40px;font-weight:900;line-height:1;margin-top:6px;">${fin.systemKw} kW</div>
-        <div style="font-size:12px;font-weight:700;margin-top:6px;">${panelCount} Panels</div>
+      <div style="text-align:right;">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(to right,#F1F8E9,#E8F5E9);border:1px solid #C8E6C9;padding:8px 16px;border-radius:20px;margin-bottom:12px;">
+          <span style="font-size:16px;">☀️</span>
+          <span style="font-weight:700;color:#1B5E20;font-size:12px;">PM Surya Ghar: Muft Bijli Yojana</span>
+          <span style="color:#8BC34A;">✓</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#1B5E20;">🌐 ${installer.website || 'www.suryapower.com'}</div>
+        <div style="font-size:13px;color:#4A6741;margin-top:4px;">📞 ${installer.phone || '98765 43210'}</div>
       </div>
     </div>
   </div>
-
-  <div class="page-footer">Solar Proposal | ${installer.company_name || 'Solar Installer'}</div>
 </div>
 
-<!-- PAGE 2: PROJECT SUMMARY -->
-<div class="page" style="background:white;">
-  <div style="height:120px;background:#1B5E20;border-radius:0 0 48px 48px;padding:36px 48px;color:white;">
-    <div style="font-size:32px;font-weight:900;">Project Summary</div>
-    <div style="font-size:13px;color:#C8E6C9;margin-top:6px;">Complete rooftop solar solution with subsidy and net metering support</div>
-  </div>
-
-  <div style="padding:36px 48px;flex:1;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;">
-      ${[
-        ['System Capacity', `${fin.systemKw} kW`, '#1B5E20'],
-        ['Solar Panels', `${panelCount} Nos`, '#2E7D32'],
-        ['Panel Brand', panelBrand, '#33691E'],
-        ['Inverter Brand', inverterBrand, '#558B2F'],
-        ['Annual Generation', `${fin.yearlyKwh.toLocaleString('en-IN')} kWh`, '#689F38'],
-        ['Payback Period', `${fin.payback} Years`, '#827717'],
-      ].map(([label, value, color]) => `
-        <div style="background:#F1F8E9;border-left:6px solid ${color};border-radius:14px;padding:18px;">
-          <div style="font-size:11px;color:#4A6741;font-weight:800;text-transform:uppercase;letter-spacing:1px;">${label}</div>
-          <div style="font-size:24px;color:#1B5E20;font-weight:900;margin-top:8px;">${value}</div>
-        </div>
-      `).join('')}
-    </div>
-
-    <div style="background:#1B5E20;border-radius:24px;padding:28px;color:white;margin-bottom:24px;">
-      <div style="font-size:24px;font-weight:900;margin-bottom:18px;">Financial Snapshot</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-        <div style="background:rgba(255,255,255,0.12);border-radius:16px;padding:18px;text-align:center;">
-          <div style="font-size:12px;color:#C8E6C9;font-weight:700;">Quoted Price</div>
-          <div style="font-size:26px;font-weight:900;margin-top:6px;">₹${fin.quotedPrice.toLocaleString('en-IN')}</div>
-        </div>
-
-        <div style="background:rgba(255,255,255,0.12);border-radius:16px;padding:18px;text-align:center;">
-          <div style="font-size:12px;color:#C8E6C9;font-weight:700;">Govt Subsidy</div>
-          <div style="font-size:26px;font-weight:900;margin-top:6px;color:#F9A825;">₹${fin.subsidyAmount.toLocaleString('en-IN')}</div>
-        </div>
-
-        <div style="background:#F9A825;border-radius:16px;padding:18px;text-align:center;color:#1A2F1A;">
-          <div style="font-size:12px;font-weight:900;">Net Customer Cost</div>
-          <div style="font-size:26px;font-weight:900;margin-top:6px;">₹${fin.netCost.toLocaleString('en-IN')}</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-      <div style="background:#F9FBE7;border-radius:20px;padding:24px;border:2px solid #E6EE9C;">
-        <div style="font-size:20px;font-weight:900;color:#1B5E20;margin-bottom:14px;">Savings Estimate</div>
-        <div style="font-size:14px;color:#4A6741;line-height:1.8;">
-          Monthly bill before solar: <b>₹${fin.monthlyBefore.toLocaleString('en-IN')}</b><br/>
-          Estimated bill after solar: <b>₹${fin.monthlyAfter.toLocaleString('en-IN')}</b><br/>
-          Annual savings: <b>₹${fin.annualSaving.toLocaleString('en-IN')}</b><br/>
-          25-year savings: <b>₹${fin.saving25yr.toLocaleString('en-IN')}</b>
-        </div>
-      </div>
-
-      <div style="background:#E8F5E9;border-radius:20px;padding:24px;border:2px solid #A5D6A7;">
-        <div style="font-size:20px;font-weight:900;color:#1B5E20;margin-bottom:14px;">Environmental Impact</div>
-        <div style="font-size:14px;color:#4A6741;line-height:1.8;">
-          CO₂ reduction/year: <b>${fin.co2} tons</b><br/>
-          Equivalent trees planted: <b>${fin.trees}</b><br/>
-          Clean generation/year: <b>${fin.yearlyKwh.toLocaleString('en-IN')} kWh</b><br/>
-          Renewable energy contribution: <b>${fin.savePct}%</b>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="page-footer">Project Summary</div>
-</div>
-
-<!-- PAGE 3: ROOF PREVIEW -->
-<div class="page" style="background:#F1F8E9;">
-  <div style="padding:48px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+<!-- PAGE 2: WELCOME LETTER -->
+<div class="page" style="background:#F1F8E9;padding:48px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:4px solid #1B5E20;padding-bottom:20px;margin-bottom:36px;">
+    <div style="display:flex;align-items:center;gap:10px;color:#1B5E20;">
+      ${installer.logo_url ? `<img src="${installer.logo_url}" style="height:36px;width:36px;border-radius:50%;object-fit:cover;" />` : `<span style="font-size:24px;">🌿</span>`}
       <div>
-        <div style="font-size:12px;color:#2E7D32;font-weight:900;letter-spacing:2px;text-transform:uppercase;">AI Generated Preview</div>
-        <div style="font-size:38px;font-weight:900;color:#1B5E20;margin-top:6px;">Your Roof With Solar</div>
-      </div>
-
-      <div style="background:#F9A825;border-radius:16px;padding:16px 22px;text-align:center;color:#1A2F1A;">
-        <div style="font-size:11px;font-weight:900;">PROPOSED</div>
-        <div style="font-size:24px;font-weight:900;">${fin.systemKw} kW</div>
+        <div style="font-weight:900;font-size:18px;">${installer.company_name || 'SURYA POWER'}</div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;">Solutions</div>
       </div>
     </div>
-
-    <div style="background:white;border-radius:28px;padding:18px;box-shadow:0 16px 40px rgba(0,0,0,0.12);">
-      <img src="${aiImageUrlOptimized}" style="width:100%;height:520px;object-fit:cover;border-radius:20px;" />
+    <div style="text-align:right;font-size:12px;color:#4A6741;font-weight:600;">
+      <div>${today}</div><div>Ref: ${proposalNo}</div>
     </div>
-
-    <div style="margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-      <div style="background:white;border-radius:18px;padding:20px;text-align:center;border:1px solid #C8E6C9;">
-        <div style="font-size:28px;">☀️</div>
-        <div style="font-size:13px;color:#4A6741;font-weight:800;margin-top:8px;">South Facing</div>
-      </div>
-
-      <div style="background:white;border-radius:18px;padding:20px;text-align:center;border:1px solid #C8E6C9;">
-        <div style="font-size:28px;">🏗️</div>
-        <div style="font-size:13px;color:#4A6741;font-weight:800;margin-top:8px;">Raised Structure</div>
-      </div>
-
-      <div style="background:white;border-radius:18px;padding:20px;text-align:center;border:1px solid #C8E6C9;">
-        <div style="font-size:28px;">🔩</div>
-        <div style="font-size:13px;color:#4A6741;font-weight:800;margin-top:8px;">GI/MS Mounting</div>
+  </div>
+  <div style="font-size:26px;font-weight:900;color:#1A2F1A;margin-bottom:24px;">Dear ${customer.name},</div>
+  <div style="background:linear-gradient(to right,#FFF8E1,#F1F8E9);border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+    <div style="width:56px;height:56px;background:white;border-radius:50%;border:3px solid #F9A825;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">☀️</div>
+    <div>
+      <div style="font-size:18px;font-weight:900;color:#1B5E20;">PM Surya Ghar: Muft Bijli Yojana</div>
+      <div style="font-size:12px;font-weight:700;color:#2E7D32;margin-top:2px;">Empanelled & Authorized Vendor</div>
+    </div>
+    <div style="margin-left:auto;background:linear-gradient(to right,#F9A825,#FF8F00);color:white;font-weight:900;padding:8px 16px;border-radius:10px;font-size:12px;">SUBSIDY READY</div>
+  </div>
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">Welcome to <strong style="color:#1B5E20;">${installer.company_name || 'Surya Power Solutions'}</strong>! We are excited to present your customised <strong>${fin.systemKw} kW solar system</strong>. As an authorised PM Surya Ghar partner with over ${installer.years || '8'}+ years of excellence, we ensure a seamless transition to clean, affordable energy.</div>
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">This proposal outlines your exact system specifications, financial savings, and the straightforward roadmap to claiming your <strong style="color:#1B5E20;">₹${fin.subsidyAmount.toLocaleString('en-IN')}</strong> government subsidy. With this installation you will drastically cut your monthly bills while locking in energy security for decades.</div>
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;">Please review the detailed projections inside. Our technical team is ready to answer any questions and help you take the next step toward a sustainable future.</div>
+  <div style="margin-top:32px;color:#1B5E20;font-weight:700;">Warm Regards,</div>
+  <div style="font-family:Georgia,serif;font-size:36px;color:#2E7D32;opacity:0.9;margin-top:8px;">${installer.company_name || 'Surya Power'}</div>
+  <div style="font-weight:900;color:#1A2F1A;">${installer.company_name || 'Surya Power Solutions'}</div>
+  <div style="font-size:12px;color:#8BC34A;font-weight:700;">${installer.email || ''}</div>
+  <div style="margin-top:auto;padding-top:28px;display:flex;justify-content:center;">
+    <div style="background:white;border:1px solid #C8E6C9;border-radius:16px;padding:16px 28px;text-align:center;">
+      <div style="font-size:11px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Authorized & Empanelled</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(to right,#F1F8E9,#E8F5E9);border:1px solid #C8E6C9;padding:8px 16px;border-radius:20px;">
+        <span>☀️</span><span style="font-weight:700;color:#1B5E20;font-size:13px;">PM Surya Ghar: Muft Bijli Yojana</span><span style="color:#8BC34A;">✓</span>
       </div>
     </div>
   </div>
-
-  <div class="page-footer">AI Solar Preview</div>
 </div>
 
-<!-- PAGE 4: ENERGY CHART -->
-<div class="page" style="background:white;">
-  <div style="padding:48px;">
-    <div style="font-size:12px;color:#2E7D32;font-weight:900;letter-spacing:2px;text-transform:uppercase;">Generation Forecast</div>
-    <div style="font-size:38px;font-weight:900;color:#1B5E20;margin-top:6px;margin-bottom:28px;">Monthly Energy Production</div>
-
-    <div style="background:#F1F8E9;border-radius:28px;padding:32px;margin-bottom:28px;border:2px solid #C8E6C9;">
-      <div style="height:160px;display:flex;align-items:flex-end;gap:10px;margin-bottom:16px;">
-        ${chartBars}
-      </div>
-
-      <div style="font-size:13px;color:#4A6741;line-height:1.7;">
-        Your proposed <b>${fin.systemKw} kW</b> system is expected to generate approximately
-        <b>${fin.yearlyKwh.toLocaleString('en-IN')} kWh/year</b>, depending on weather, shadow, panel cleaning, and grid availability.
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
-      <div style="background:#1B5E20;border-radius:24px;padding:28px;color:white;">
-        <div style="font-size:18px;font-weight:900;margin-bottom:14px;">Why This System Size?</div>
-        <div style="font-size:13px;color:#C8E6C9;line-height:1.8;">
-          The proposed capacity is selected based on your monthly bill, rooftop suitability, subsidy eligibility, and expected generation.
-          This creates an optimal balance between investment, savings, and payback.
-        </div>
-      </div>
-
-      <div style="background:#F9A825;border-radius:24px;padding:28px;color:#1A2F1A;">
-        <div style="font-size:18px;font-weight:900;margin-bottom:14px;">Estimated Payback</div>
-        <div style="font-size:48px;font-weight:900;line-height:1;">${fin.payback}</div>
-        <div style="font-size:14px;font-weight:800;margin-top:4px;">Years</div>
-        <div style="font-size:12px;line-height:1.6;margin-top:12px;">After payback, most of your solar generation becomes direct savings.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="page-footer">Energy Forecast</div>
-</div>
-
-<!-- PAGE 5: PAYMENT TERMS -->
+<!-- PAGE 3: PROJECTS 1 -->
 <div class="page" style="background:#F1F8E9;">
-  <div style="padding:48px;">
-    <div style="font-size:12px;color:#2E7D32;font-weight:900;letter-spacing:2px;text-transform:uppercase;">Commercial Offer</div>
-    <div style="font-size:38px;font-weight:900;color:#1B5E20;margin-top:6px;margin-bottom:28px;">Payment Schedule</div>
-
-    <div style="background:white;border-radius:28px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.10);">
+  ${sectionHeader('Our Track Record', 'Installer Profile & Past Projects')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
+    <div style="background:white;border:2px solid #C8E6C9;border-radius:16px;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;margin-bottom:28px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(to right,#F9A825,#8BC34A);"></div>
       ${[
-        ['1', 'Advance Payment', 'On order confirmation', fin.advance],
-        ['2', 'Material Dispatch', 'Before material delivery at site', fin.material],
-        ['3', 'Final Payment', 'After installation and commissioning', fin.final],
-      ].map(([num, title, desc, amount]) => `
-        <div style="display:grid;grid-template-columns:80px 1fr 180px;border-bottom:1px solid #E0E0E0;align-items:center;">
-          <div style="background:#1B5E20;color:white;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;">${num}</div>
-          <div style="padding:24px;">
-            <div style="font-size:20px;font-weight:900;color:#1B5E20;">${title}</div>
-            <div style="font-size:13px;color:#4A6741;margin-top:4px;">${desc}</div>
+        {label:'In Business',value:installer.years||'8+',icon:'📅'},
+        {label:'Installations',value:installer.total_kw||'450+',icon:'🏠'},
+        {label:'Capacity',value:'2.1 MW',icon:'⚡'},
+        {label:'Rating',value:'4.9/5',icon:'⭐'},
+      ].map((s,i) => `
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:44px;height:44px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">${s.icon}</div>
+          <div>
+            <div style="font-size:18px;font-weight:900;color:#1B5E20;">${s.value}</div>
+            <div style="font-size:9px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${s.label}</div>
           </div>
-          <div style="padding:24px;text-align:right;font-size:22px;font-weight:900;color:#1B5E20;">₹${amount.toLocaleString('en-IN')}</div>
         </div>
-      `).join('')}
+        ${i<3?'<div style="width:1px;height:40px;background:#C8E6C9;"></div>':''}`).join('')}
     </div>
-
-    <div style="margin-top:28px;background:#1B5E20;color:white;border-radius:24px;padding:28px;">
-      <div style="font-size:22px;font-weight:900;margin-bottom:18px;">Bank / Payment Details</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:14px;color:#C8E6C9;line-height:1.8;">
-        <div>
-          Bank Name: <b style="color:white;">${installer.bank_name || 'To be shared'}</b><br/>
-          Account No: <b style="color:white;">${installer.account_no || 'To be shared'}</b>
-        </div>
-        <div>
-          IFSC: <b style="color:white;">${installer.ifsc || 'To be shared'}</b><br/>
-          UPI: <b style="color:white;">${installer.upi || 'To be shared'}</b>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:24px;background:#FFFDE7;border:2px solid #FBC02D;border-radius:18px;padding:20px;color:#5D4037;font-size:13px;line-height:1.7;">
-      <b>Note:</b> Final subsidy approval, DISCOM processing, net metering timelines, and government scheme benefits are subject to applicable state and central guidelines.
+    <div style="display:flex;gap:24px;flex:1;">
+      ${projectCard(projects[0],0)}
+      ${projectCard(projects[1],1)}
     </div>
   </div>
-
-  <div class="page-footer">Payment Terms</div>
 </div>
 
-<!-- PAGE 6: TRUST -->
-<div class="page" style="background:white;">
-  <div style="height:110px;background:#1B5E20;border-radius:0 0 48px 48px;padding:34px 48px;color:white;">
-    <div style="font-size:34px;font-weight:900;">Why Choose ${installer.company_name || 'Us'}?</div>
-  </div>
-
-  <div style="padding:42px 48px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:30px;">
-      ${[
-        ['🏆', `${installer.years || '5+'}`, 'Years Experience'],
-        ['⚡', `${installer.total_kw || '500+'}`, 'kW Installed'],
-        ['🛡️', '25 Years', 'Panel Warranty'],
-        ['✅', 'End-to-End', 'Subsidy Support'],
-      ].map(([icon, value, label]) => `
-        <div style="background:#F1F8E9;border-radius:24px;padding:28px;text-align:center;border:2px solid #C8E6C9;">
-          <div style="font-size:36px;">${icon}</div>
-          <div style="font-size:32px;font-weight:900;color:#1B5E20;margin-top:10px;">${value}</div>
-          <div style="font-size:13px;font-weight:800;color:#4A6741;margin-top:6px;">${label}</div>
-        </div>
-      `).join('')}
+<!-- PAGE 4: PROJECTS 2 -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Our Track Record', 'Installer Profile & Past Projects')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
+    <div style="display:flex;gap:24px;flex:1;">
+      ${projectCard(projects[2],2)}
+      ${projectCard(projects[3],3)}
     </div>
+  </div>
+</div>
 
-    <div style="background:#1B5E20;border-radius:28px;padding:32px;color:white;">
-      <div style="font-size:24px;font-weight:900;margin-bottom:18px;">Our Scope Includes</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+<!-- PAGE 5: PROJECTS 3 + COMMITMENTS -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Our Track Record', 'Installer Profile & Past Projects')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
+    <div style="display:flex;gap:24px;flex:1;margin-bottom:24px;">
+      ${projectCard(projects[4],4)}
+      ${projectCard(projects[5],5)}
+    </div>
+    <div style="background:#1B5E20;color:white;border-radius:16px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;">
+      ${[
+        {icon:'✓',label:'MNRE Empanelled',sub:'Installer'},
+        {icon:'🛡',label:'Tier-1 Brands Only',sub:'Waaree, Adani, Vikram'},
+        {icon:'⚙',label:'5 Year Free AMC',sub:'Included'},
+      ].map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:12px;flex:1;justify-content:center;">
+          <div style="background:#8BC34A;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1B5E20;font-weight:900;font-size:16px;">${c.icon}</div>
+          <div style="text-align:center;">
+            <div style="font-weight:700;font-size:13px;">${c.label}</div>
+            <div style="font-size:10px;opacity:0.8;">${c.sub}</div>
+          </div>
+        </div>
+        ${i<2?'<div style="width:1px;height:40px;background:rgba(255,255,255,0.2);"></div>':''}`).join('')}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 6: SYSTEM DESIGN -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Technical Overview', 'Proposed System Design')}
+  <div style="padding:28px 48px;">
+    <div style="width:100%;height:340px;border-radius:20px;overflow:hidden;border:2px solid #C8E6C9;margin-bottom:24px;position:relative;">
+      <img src="${aiImageUrl}" style="width:100%;height:100%;object-fit:cover;" crossorigin="anonymous" />
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4),transparent);"></div>
+      <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:white;font-weight:700;font-size:13px;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;">AI Generated — Your Actual Roof View</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+      ${[
+        {title:'System Size',value:`${fin.systemKw} kW`,icon:'⚡'},
+        {title:'Solar Panels',value:`${panelCount}x ${panelBrand.split(' ')[0]} 550W`,icon:'☀️'},
+        {title:'Orientation',value:'South / 25° Tilt',icon:'📍'},
+        {title:'Connection',value:'On-Grid Net Meter',icon:'🔌'},
+      ].map(s=>`
+        <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
+          <div style="font-size:22px;margin-bottom:8px;">${s.icon}</div>
+          <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${s.title}</div>
+          <div style="font-size:14px;font-weight:900;color:#1A2F1A;">${s.value}</div>
+        </div>`).join('')}
+    </div>
+    <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="background:linear-gradient(135deg,#8BC34A,#2E7D32);padding:14px;border-radius:50%;font-size:24px;">🌿</div>
+        <div>
+          <div style="font-size:17px;font-weight:900;color:#1B5E20;">Environmental Impact</div>
+          <div style="font-size:13px;font-weight:700;color:#4A6741;">Offsets ${fin.co2} Tonnes of CO₂ emissions annually</div>
+        </div>
+      </div>
+      <div style="background:#F1F8E9;padding:12px 16px;border-radius:12px;border:1px solid #C8E6C9;text-align:right;">
+        <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;">Equivalent to planting</div>
+        <div style="font-size:26px;font-weight:900;color:#1B5E20;">${fin.trees} Trees / Year</div>
+      </div>
+    </div>
+    <div style="background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;">
+      <div style="background:#1B5E20;padding:12px 20px;color:white;font-weight:700;font-size:14px;">⚙ Detailed Specifications</div>
+      ${[
+        ['System Type','Grid-Tied (On-Grid) Rooftop Solar PV System'],
+        ['Panel Model',`${panelBrand} 550W Monocrystalline PERC Half-Cut`],
+        ['Inverter Model',`${inverterBrand} ${fin.systemKw}kW String Inverter (Wi-Fi Enabled)`],
+        ['Mounting Structure','Hot-Dip Galvanized (HDG) MS, 25° Optimal Tilt'],
+        ['Estimated Annual Gen.',`${fin.yearlyKwh.toLocaleString('en-IN')} kWh (Units) per year`],
+      ].map((r,i)=>`
+        <div style="display:flex;border-bottom:1px solid #C8E6C9;background:${i%2===0?'#F1F8E9':'white'};">
+          <div style="padding:12px 20px;width:40%;font-size:12px;font-weight:700;color:#4A6741;">${r[0]}</div>
+          <div style="padding:12px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${r[1]}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 7: FINANCIAL SAVINGS -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Return on Investment', 'Financial Savings Analysis')}
+  <div style="padding:28px 48px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:24px;">
+      <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;">Total System Cost</div>
+        <div style="font-size:20px;font-weight:900;color:#1A2F1A;margin-top:6px;">₹${fin.quotedPrice.toLocaleString('en-IN')}</div>
+      </div>
+      <div style="background:#E8F5E9;border:2px solid #8BC34A;border-radius:12px;padding:16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;right:0;background:#8BC34A;color:white;font-size:9px;font-weight:900;padding:3px 8px;border-radius:0 0 0 8px;">APPROVED</div>
+        <div style="font-size:10px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:1px;">PM Surya Ghar Subsidy</div>
+        <div style="font-size:20px;font-weight:900;color:#2E7D32;margin-top:6px;">₹${fin.subsidyAmount.toLocaleString('en-IN')}</div>
+      </div>
+      <div style="background:#1B5E20;border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;color:#8BC34A;text-transform:uppercase;letter-spacing:1px;">Your Net Investment</div>
+        <div style="font-size:24px;font-weight:900;color:white;margin-top:6px;">₹${fin.netCost.toLocaleString('en-IN')}</div>
+      </div>
+      <div style="background:#F1F8E9;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:1px;">Payback Period</div>
+        <div style="font-size:20px;font-weight:900;color:#1B5E20;margin-top:6px;">${fin.payback} Years</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:24px;">
+      <div style="flex:1;background:white;border:2px solid #C8E6C9;border-radius:16px;overflow:hidden;">
+        <div style="background:#E8F5E9;padding:14px 20px;border-bottom:2px solid #C8E6C9;">
+          <div style="font-weight:900;color:#1B5E20;font-size:14px;">📈 Savings Projections</div>
+        </div>
         ${[
-          'Site survey and engineering design',
-          'Solar panel and inverter supply',
-          'GI/MS mounting structure',
-          'DC/AC cabling and protection',
-          'Installation and commissioning',
-          'Net metering and subsidy support',
-          'Warranty documentation',
-          'Post-installation service support',
-        ].map(item => `
-          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#C8E6C9;">
-            <div style="width:20px;height:20px;background:#8BC34A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;flex-shrink:0;">✓</div>
-            <span>${item}</span>
+          ['Annual Generation',`${fin.yearlyKwh.toLocaleString('en-IN')} kWh`,'#1A2F1A'],
+          ['Current Monthly Bill',`₹${fin.monthlyBefore.toLocaleString('en-IN')}`,'#1A2F1A'],
+          ['Monthly Savings',`₹${Math.round(fin.annualSaving/12).toLocaleString('en-IN')}`,'#2E7D32'],
+          ['Annual Savings',`₹${fin.annualSaving.toLocaleString('en-IN')}`,'#2E7D32'],
+          ['10 Year Savings',`₹${(fin.annualSaving*10).toLocaleString('en-IN')}`,'#1A2F1A'],
+          ['25 Year Savings',`₹${(fin.annualSaving*25).toLocaleString('en-IN')}`,'#1A2F1A'],
+          ['25 Year Net Profit',`₹${fin.saving25yr.toLocaleString('en-IN')}`,'#F9A825'],
+        ].map(r=>`
+          <div style="display:flex;justify-content:space-between;padding:10px 20px;border-bottom:1px solid #C8E6C9;">
+            <span style="font-size:12px;color:#4A6741;font-weight:600;">${r[0]}</span>
+            <span style="font-size:12px;font-weight:900;color:${r[2]};">${r[1]}</span>
+          </div>`).join('')}
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;background:white;border:2px solid #C8E6C9;border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;margin-bottom:6px;">Before Solar</div>
+            <div style="font-size:22px;font-weight:900;color:#1A2F1A;">₹${fin.monthlyBefore.toLocaleString('en-IN')}</div>
+            <div style="font-size:10px;color:#4A6741;margin-top:4px;">per month</div>
           </div>
-        `).join('')}
-      </div>
-    </div>
-  </div>
-
-  <div class="page-footer">Trust & Scope</div>
-</div>
-
-<!-- PAGE 7: PROJECTS 1 -->
-<div class="page" style="background:#F1F8E9;">
-  <div style="padding:48px;">
-    <div style="font-size:12px;color:#2E7D32;font-weight:900;letter-spacing:2px;text-transform:uppercase;">Past Installations</div>
-    <div style="font-size:38px;font-weight:900;color:#1B5E20;margin-top:6px;margin-bottom:28px;">Our Recent Projects</div>
-
-    <div style="display:flex;gap:22px;height:650px;">
-      ${proj0 || projectCards(null, 0)}
-      ${proj1 || projectCards(null, 1)}
-    </div>
-  </div>
-
-  <div class="page-footer">Past Projects</div>
-</div>
-
-<!-- PAGE 8: PROJECTS 2 -->
-<div class="page" style="background:white;">
-  <div style="padding:48px;">
-    <div style="font-size:12px;color:#2E7D32;font-weight:900;letter-spacing:2px;text-transform:uppercase;">More References</div>
-    <div style="font-size:38px;font-weight:900;color:#1B5E20;margin-top:6px;margin-bottom:28px;">Customer Success Stories</div>
-
-    <div style="display:flex;gap:22px;height:650px;">
-      ${proj2 || projectCards(null, 2)}
-      ${proj3 || projectCards(null, 3)}
-    </div>
-  </div>
-
-  <div class="page-footer">Customer Success</div>
-</div>
-
-<!-- PAGE 9: PROJECTS 3 -->
-<div class="page" style="background:#F1F8E9;">
-  <div style="padding:48px;">
-    <div style="font-size:12px;color:#2E7D32;font-weight:900;letter-spacing:2px;text-transform:uppercase;">Installation Proof</div>
-    <div style="font-size:38px;font-weight:900;color:#1B5E20;margin-top:6px;margin-bottom:28px;">Completed Solar Sites</div>
-
-    <div style="display:flex;gap:22px;height:650px;">
-      ${proj4 || projectCards(null, 4)}
-      ${proj5 || projectCards(null, 5)}
-    </div>
-  </div>
-
-  <div class="page-footer">Installation Proof</div>
-</div>
-
-<!-- PAGE 10: NEXT STEPS -->
-<div class="page" style="background:#1A2F1A;">
-  <div style="position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(#fff 1.5px,transparent 1.5px);background-size:16px 16px;"></div>
-
-  <div style="padding:60px 48px;position:relative;z-index:1;color:white;display:flex;flex-direction:column;height:100%;">
-    <div style="font-size:12px;color:#F9A825;font-weight:900;letter-spacing:3px;text-transform:uppercase;">Next Steps</div>
-    <div style="font-size:54px;font-weight:900;line-height:1.05;margin-top:14px;">Start Your<br/>Solar Journey</div>
-
-    <div style="margin-top:40px;display:grid;gap:18px;">
-      ${[
-        ['1', 'Confirm proposal and payment terms'],
-        ['2', 'Detailed site verification and final engineering'],
-        ['3', 'Material procurement and installation scheduling'],
-        ['4', 'Installation, commissioning, net metering and subsidy support'],
-      ].map(([num, text]) => `
-        <div style="display:flex;align-items:center;gap:18px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:18px;padding:18px;">
-          <div style="width:42px;height:42px;background:#F9A825;color:#1A2F1A;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;">${num}</div>
-          <div style="font-size:16px;font-weight:700;color:#E8F5E9;">${text}</div>
+          <div style="flex:1;background:#F1F8E9;border:2px solid #8BC34A;border-radius:12px;padding:14px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-4px;right:-16px;background:#8BC34A;color:white;font-size:9px;font-weight:900;padding:4px 24px;transform:rotate(45deg);">SAVE ${fin.savePct}%</div>
+            <div style="font-size:10px;color:#2E7D32;font-weight:700;text-transform:uppercase;margin-bottom:6px;">After Solar</div>
+            <div style="font-size:22px;font-weight:900;color:#1B5E20;">₹${fin.monthlyAfter.toLocaleString('en-IN')}</div>
+            <div style="font-size:10px;color:#2E7D32;margin-top:4px;">per month</div>
+          </div>
         </div>
-      `).join('')}
-    </div>
-
-    <div style="margin-top:auto;background:#F9A825;color:#1A2F1A;border-radius:28px;padding:32px;display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:2px;">Contact</div>
-        <div style="font-size:28px;font-weight:900;margin-top:8px;">${installer.company_name || 'Solar Installer'}</div>
-        <div style="font-size:14px;font-weight:700;margin-top:8px;">${installer.phone || '+91 98765 43210'} | ${installer.email || 'info@solar.com'}</div>
+        <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;flex:1;">
+          <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Monthly Generation (kWh)</div>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:2px solid #E8F5E9;padding-bottom:4px;">
+            ${chartBars}
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+</div>
 
-      <div style="font-size:52px;">☀️</div>
+<!-- PAGE 8: BILL OF MATERIALS -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Technical Delivery', 'Bill of Materials (BOM)')}
+  <div style="padding:28px 48px;">
+    <div style="background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;margin-bottom:20px;">
+      <table>
+        <thead>
+          <tr style="background:#1B5E20;color:white;">
+            <th style="padding:14px 20px;text-align:left;font-size:11px;text-transform:uppercase;width:22%;">Component</th>
+            <th style="padding:14px 20px;text-align:left;font-size:11px;text-transform:uppercase;width:44%;">Brand & Specification</th>
+            <th style="padding:14px 20px;text-align:center;font-size:11px;text-transform:uppercase;width:10%;">Qty</th>
+            <th style="padding:14px 20px;text-align:left;font-size:11px;text-transform:uppercase;width:24%;">Warranty</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${[
+            [panelBrand,`${panelBrand} 550W Mono PERC Half Cut`,`${panelCount} Nos`,'25yr Performance / 10yr Product'],
+            ['Inverter',`${inverterBrand} ${fin.systemKw}kW Wi-Fi String Inverter IP65`,'1 No','10 Years'],
+            ['Structure','GI/MS Hot Dip Galvanized 25° MNRE Approved','1 Set','10 Years'],
+            ['DC Cables','4mm UV Resistant with MC4 Connectors','As Req.','10 Years'],
+            ['AC DB Box','IP65 Enclosure with SPD, MCB, Isolator','1 No','2 Years'],
+            ['Earthing & LA','Maintenance-free GI Plate & Lightning Arrester','1 Set','5 Years'],
+            ['Net Meter','Bidirectional DISCOM Approved Meter','1 No','Per DISCOM'],
+          ].map((r,i)=>`
+            <tr style="border-bottom:1px solid #C8E6C9;background:${i%2===0?'white':'#F1F8E9'};">
+              <td style="padding:12px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${r[0]}</td>
+              <td style="padding:12px 20px;font-size:12px;font-weight:700;color:#4A6741;">${r[1]}</td>
+              <td style="padding:12px 20px;font-size:12px;font-weight:900;color:#1B5E20;text-align:center;background:#E8F5E9;">${r[2]}</td>
+              <td style="padding:12px 20px;font-size:12px;font-weight:900;color:#2E7D32;">${r[3]}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;gap:16px;">
+      <div style="background:#E8F5E9;padding:10px;border-radius:50%;font-size:20px;flex-shrink:0;align-self:flex-start;">⚙</div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:#1B5E20;margin-bottom:6px;">Balance of System (BOS) Inclusion Note:</div>
+        <div style="font-size:12px;color:#4A6741;font-weight:600;line-height:1.6;">All necessary civil work for foundation blocks, PVC conduits, junction boxes, cable trays, and minor hardware required for a safe, code-compliant installation are fully included in the system cost.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 9: PRICING & PAYMENT -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Commercials', 'Pricing & Payment Terms')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;gap:22px;">
+    <div style="background:white;border:4px solid #1B5E20;border-radius:16px;padding:28px;position:relative;margin-top:12px;">
+      <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:#1B5E20;color:white;padding:6px 20px;border-radius:20px;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">🌿 Final Quotation</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:8px;">
+        <span style="font-size:17px;font-weight:700;color:#4A6741;">Total System Cost</span>
+        <span style="font-size:20px;font-weight:900;color:#1A2F1A;">₹ ${fin.quotedPrice.toLocaleString('en-IN')}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:20px;border-bottom:2px dashed #C8E6C9;color:#2E7D32;">
+        <span style="font-size:15px;font-weight:700;">Less: PM Surya Ghar Subsidy</span>
+        <span style="font-size:17px;font-weight:900;">- ₹ ${fin.subsidyAmount.toLocaleString('en-IN')}</span>
+      </div>
+      <div style="background:#F1F8E9;padding:20px 24px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;border:1px solid #C8E6C9;">
+        <div>
+          <div style="font-size:11px;font-weight:900;color:#1B5E20;text-transform:uppercase;letter-spacing:2px;">Net Amount Payable</div>
+          <div style="font-size:10px;color:#4A6741;margin-top:2px;">*Excluding GST as applicable</div>
+        </div>
+        <div style="font-size:44px;font-weight:900;color:#1B5E20;">₹ ${fin.netCost.toLocaleString('en-IN')}</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:12px;">📄 Payment Milestones</div>
+      <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;overflow:hidden;">
+        <table>
+          <thead><tr style="background:#E8F5E9;color:#2E7D32;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">
+            <th style="padding:12px 20px;text-align:left;">Milestone</th>
+            <th style="padding:12px 20px;text-align:left;">Timeline</th>
+            <th style="padding:12px 20px;text-align:right;">Amount</th>
+          </tr></thead>
+          <tbody>
+            ${[
+              ['20% Advance','On Proposal Signing (Due Today)',`₹ ${fin.advance.toLocaleString('en-IN')}`],
+              ['70% Material Readiness','Before Material Delivery (Day 3-5)',`₹ ${fin.material.toLocaleString('en-IN')}`],
+              ['10% Commissioning','After Meter Install & Testing',`₹ ${fin.final.toLocaleString('en-IN')}`],
+            ].map((r,i)=>`
+              <tr style="border-top:1px solid #C8E6C9;background:${i%2===1?'#F1F8E9':'white'};">
+                <td style="padding:13px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${r[0]}</td>
+                <td style="padding:13px 20px;font-size:12px;font-weight:700;color:#4A6741;">${r[1]}</td>
+                <td style="padding:13px 20px;font-size:12px;font-weight:900;color:#1A2F1A;text-align:right;">${r[2]}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:#1B5E20;color:white;padding:20px;border-radius:16px;">
+        <div style="font-size:11px;font-weight:900;color:#F9A825;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);">🛡 Bank Details</div>
+        <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">Bank:</span>${installer.bank_name || 'HDFC Bank'}</div>
+        <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">Account:</span>${installer.account_no || 'XXXX XXXX XXXX'}</div>
+        <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">IFSC:</span>${installer.ifsc || 'HDFC0001234'}</div>
+        <div style="font-size:12px;font-weight:900;color:#F9A825;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);">⚡ UPI: ${installer.upi || 'contact@suryapower.com'}</div>
+      </div>
+      <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:20px;">
+        <div style="font-size:14px;font-weight:900;color:#1B5E20;margin-bottom:10px;">✓ Important Note</div>
+        <div style="font-size:12px;color:#4A6741;line-height:1.7;">GST at prevailing rates will be charged extra. The PM Surya Ghar subsidy of ₹${fin.subsidyAmount.toLocaleString('en-IN')} will be credited <strong style="color:#1B5E20;">directly to your linked bank account</strong> by the government. 🌱</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 10: NEXT STEPS + FOOTER -->
+<div class="page" style="background:#F1F8E9;padding:48px;display:flex;flex-direction:column;">
+  <div style="margin-bottom:36px;">
+    <div style="font-size:28px;font-weight:900;color:#1B5E20;text-align:center;margin-bottom:32px;">🌿 Your Journey to Clean Energy</div>
+    <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;">
+      <div style="position:absolute;top:28px;left:0;width:100%;height:4px;background:#C8E6C9;border-radius:2px;z-index:0;"></div>
+      ${[
+        {no:1,label:'Sign Proposal'},
+        {no:2,label:'20% Advance'},
+        {no:3,label:'Site Survey'},
+        {no:4,label:'Installation'},
+        {no:5,label:'Net Metering'},
+        {no:6,label:'Subsidy Credit'},
+      ].map(s=>`
+        <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:#1B5E20;color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;border:4px solid #F1F8E9;">${s.no}</div>
+          <div style="font-size:10px;font-weight:900;color:#2E7D32;text-align:center;width:70px;line-height:1.3;text-transform:uppercase;">${s.label}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+    <div style="background:white;padding:24px;border-radius:16px;border:2px solid #C8E6C9;border-top:8px solid #8BC34A;">
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:16px;">✓ Scope Included</div>
+      ${['All Solar Materials & Components','End-to-End Installation & Wiring','Custom Mounting Structure','Subsidy Documentation & Portal Entry','Net Meter Application Process','1 Year Free Workmanship Warranty'].map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#8BC34A;flex-shrink:0;"></div>
+          <span style="font-size:12px;font-weight:600;color:#4A6741;">${s}</span>
+        </div>`).join('')}
+    </div>
+    <div style="background:white;padding:24px;border-radius:16px;border:2px solid #C8E6C9;border-top:8px solid #4A6741;">
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:16px;">⚙ Scope Excluded</div>
+      ${['Official DISCOM / Utility Fees','Major Pre-existing Electrical Upgrades','Major Civil Roof Repairs before installation','Water arrangement for panel cleaning'].map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#4A6741;opacity:0.5;flex-shrink:0;"></div>
+          <span style="font-size:12px;font-weight:600;color:#4A6741;">${s}</span>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;padding:0 32px;margin-bottom:32px;">
+    <div style="width:35%;border-top:2px solid #1B5E20;padding-top:12px;text-align:center;">
+      <div style="font-size:15px;font-weight:900;color:#1A2F1A;">${customer.name}</div>
+      <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Customer Acceptance & Date</div>
+    </div>
+    <div style="width:35%;border-top:2px solid #1B5E20;padding-top:12px;text-align:center;">
+      <div style="font-size:15px;font-weight:900;color:#1A2F1A;">${installer.company_name || 'Surya Power Solutions'}</div>
+      <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Authorised Signatory — ${today}</div>
+    </div>
+  </div>
+  <div style="background:#1B5E20;margin:-48px;margin-top:auto;padding:40px 48px;color:white;position:relative;overflow:hidden;">
+    <div style="font-size:32px;font-weight:900;text-align:center;margin-bottom:8px;">Thank You for Choosing Clean Energy</div>
+    <div style="text-align:center;color:#8BC34A;font-weight:700;font-size:15px;margin-bottom:24px;">🌿 Together we are building a sustainable India.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(139,195,74,0.3);border-bottom:1px solid rgba(139,195,74,0.3);padding:16px 0;margin-bottom:16px;">
+      <span>📞 ${installer.phone || '98765 43210'}</span>
+      <span>✉ ${installer.email || 'info@suryapower.com'}</span>
+      <span>🌐 ${installer.website || 'www.suryapower.com'}</span>
+    </div>
+    <div style="text-align:center;font-size:10px;color:#C8E6C9;opacity:0.8;text-transform:uppercase;letter-spacing:2px;">
+      ${installer.company_name || 'Surya Power Solutions'} • GST: ${installer.gst || 'XXXXXXXXXXXX'} • Powered by SolarQuote
     </div>
   </div>
 </div>
@@ -977,59 +951,27 @@ if (installer.logo_url) {
 </html>`;
 
   const browser = await puppeteer.launch({
-  headless: 'new',
-  args: [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-gpu',
-    '--no-first-run',
-    '--no-zygote',
-    '--single-process',
-    '--disable-web-security',
-    '--disable-features=IsolateOrigins,site-per-process',
-  ],
-});
+    headless: 'new',
+    args: ['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--disable-gpu','--no-first-run','--no-zygote','--single-process','--disable-web-security','--disable-features=IsolateOrigins,site-per-process'],
+  });
 
-const page = await browser.newPage();
+  const page = await browser.newPage();
+  page.setDefaultTimeout(120000);
+  page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
 
-page.setDefaultTimeout(120000);
-page.setDefaultNavigationTimeout(120000);
+  await page.setContent(html, { waitUntil: 'networkidle0', timeout: 90000 });
+  await new Promise(resolve => setTimeout(resolve, 3000));
 
-page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    printBackground: true,
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+  });
 
-await page.setContent(html, {
-  waitUntil: 'networkidle0',
-  timeout: 90000,
-});
-
-await new Promise(resolve => setTimeout(resolve, 3000));
-
-const pdfBuffer = await page.pdf({
-  format: 'A4',
-  printBackground: true,
-  margin: {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  },
-});
-
-await browser.close();
-
-console.log(`PDF generated, size: ${pdfBuffer.length} bytes`);
-
-fs.writeFileSync(pdfPath, pdfBuffer);
-
-if (!pdfBuffer || pdfBuffer.length < 1000) {
-  throw new Error(`Generated PDF is invalid or too small. Size: ${pdfBuffer?.length || 0} bytes`);
+  await browser.close();
+  console.log(`PDF generated, size: ${pdfBuffer.length} bytes`);
+  fs.writeFileSync(pdfPath, pdfBuffer);
 }
-
-return pdfBuffer;
-}
-
 // ── SERVE STATIC ──────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'static', 'index.html'));
