@@ -214,9 +214,13 @@ app.post('/api/save-profile', upload.fields([
     }
 
     const profilePath = path.join(TMP, `profile_${installerId}.json`);
-    fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
 
-    res.json({ success: true, profile });
+// Persist profile to Cloudinary so it survives redeploys
+const profileJsonBuffer = Buffer.from(JSON.stringify(profile, null, 2));
+await uploadToCloudinary(profileJsonBuffer, `solarscan/${installerId}`, 'profile', 'raw');
+
+res.json({ success: true, profile });
   } catch (err) {
     console.error('Save profile error:', err);
     res.status(500).json({ error: err.message });
