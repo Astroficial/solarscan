@@ -976,8 +976,9 @@ async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand
   });
 
   await browser.close();
-  console.log(`PDF generated, size: ${pdfBuffer.length} bytes`);
+ console.log(`PDF generated, size: ${pdfBuffer.length} bytes`);
   fs.writeFileSync(pdfPath, pdfBuffer);
+  return pdfBuffer;
 }
 // ── SERVE STATIC ──────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
