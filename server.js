@@ -259,7 +259,11 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
     const roofType      = req.body.roof_type || 'flat_rcc';
     const panelBrand    = req.body.panel_brand || 'Waaree Solar';
     const inverterBrand = req.body.inverter_brand || 'Solis';
-    const legHeights    = JSON.parse(req.body.leg_heights_ft || '[3]');
+   let legHeights = [3];
+try {
+  legHeights = JSON.parse(req.body.leg_heights_ft || '[3]');
+  if (!Array.isArray(legHeights)) legHeights = [3];
+} catch(e) { legHeights = [3]; }
     const installerId   = req.body.installer_id || 'default';
 
     const customer = {
