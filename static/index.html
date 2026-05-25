@@ -515,7 +515,7 @@ function loadProfileIntoForm() {
   if (!saved) return;
   var p = JSON.parse(saved);
 
-  var fields = ['company','tagline','years','totalkw','gst','phone','email','website','address','bank','account','ifsc','upi'];
+ var fields = ['company','tagline','years','installations','totalkw','gst','phone','email','website','address','bank','account','ifsc','upi'];
   fields.forEach(function(f) {
     var el = document.getElementById('s-' + f);
     if (el && p[f]) el.value = p[f];
