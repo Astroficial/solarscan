@@ -802,8 +802,8 @@ const chartBars = monthlyData.map(d => {
           </div>
         </div>
         <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;flex:1;">
-          <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Monthly Generation (kWh)</div>
-          <div style="display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:2px solid #E8F5E9;padding-bottom:4px;">
+         <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Monthly Generation & Savings</div>
+<div style="display:flex;align-items:flex-end;gap:2px;height:120px;border-bottom:2px solid #E8F5E9;padding-bottom:4px;">
             ${chartBars}
           </div>
         </div>
