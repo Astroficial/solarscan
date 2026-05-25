@@ -597,7 +597,7 @@ async function saveProfile() {
     company_name: document.getElementById('s-company').value,
     tagline:      document.getElementById('s-tagline').value,
     years:        document.getElementById('s-years').value,
-installations: document.getElementById('s-installations').value,
+installations: document.getElementById('s-installations')?.value || '',
 total_kw:     document.getElementById('s-totalkw').value,
 gst:          document.getElementById('s-gst').value,
     phone:        document.getElementById('s-phone').value,
