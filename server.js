@@ -654,20 +654,20 @@ const chartBars = monthlyData.map(d => {
   <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
     <div style="background:white;border:2px solid #C8E6C9;border-radius:16px;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;margin-bottom:28px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(to right,#F9A825,#8BC34A);"></div>
-      ${[
-        {label:'In Business',   value: installer.years    || '8+',  icon:'����'},
-        {label:'Installations', value: installer.total_kw || '450+',icon:'����'},
-        {label:'Capacity',      value: '2.1 MW',                    icon:'���'},
-        {label:'Rating',        value: '4.9/5',                     icon:'���'},
-      ].map((s,i) => `
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:44px;height:44px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">${s.icon}</div>
-          <div>
-            <div style="font-size:18px;font-weight:900;color:#1B5E20;">${s.value}</div>
-            <div style="font-size:9px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${s.label}</div>
-          </div>
-        </div>
-        ${i<3?'<div style="width:1px;height:40px;background:#C8E6C9;"></div>':''}`).join('')}
+     ${[
+  {label:'In Business',   value: installer.years || '8+', icon:'Y'},
+  {label:'Installations', value: installer.installations || '450+', icon:'I'},
+  {label:'Capacity',      value: installer.total_kw || '2.1 MW', icon:'C'},
+  {label:'Rating',        value: installer.rating || '4.9/5', icon:'R'},
+].map((s,i) => `
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="width:44px;height:44px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1B5E20;">${s.icon}</div>
+    <div>
+      <div style="font-size:18px;font-weight:900;color:#1B5E20;">${s.value}</div>
+      <div style="font-size:9px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${s.label}</div>
+    </div>
+  </div>
+  ${i<3?'<div style="width:1px;height:40px;background:#C8E6C9;"></div>':''}`).join('')}
     </div>
     <div style="display:flex;gap:24px;flex:1;">
       ${projectCard(projects[0],0)}
