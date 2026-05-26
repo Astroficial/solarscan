@@ -470,7 +470,6 @@ async function imgToBase64(url, localPath) {
     {m:'Sep',v:580},{m:'Oct',v:620},{m:'Nov',v:500},{m:'Dec',v:450}
   ];
 const unitRateForChart = fin.yearlyKwh > 0 ? fin.annualSaving / fin.yearlyKwh : 6;
-const unitRateForChart = fin.yearlyKwh > 0 ? fin.annualSaving / fin.yearlyKwh : 6;
 
 const chartBars = monthlyData.map(d => {
   const saving = Math.round(d.v * unitRateForChart);
@@ -483,16 +482,6 @@ const chartBars = monthlyData.map(d => {
       <div style="font-size:8px;color:#1B5E20;font-weight:900;margin-bottom:1px;white-space:nowrap;">${savingShort}</div>
       <div style="font-size:7px;color:#4A6741;font-weight:700;margin-bottom:3px;white-space:nowrap;">${d.v} kWh</div>
       <div style="width:14px;height:${Math.round((d.v / 750) * 70)}px;background:linear-gradient(to top,#8BC34A,#1B5E20);border-radius:2px 2px 0 0;"></div>
-      <div style="font-size:7px;font-weight:700;color:#4A6741;margin-top:3px;">${d.m}</div>
-    </div>`;
-}).join('');
-  const saving = Math.round(d.v * unitRateForChart);
-  const savingShort = saving >= 1000 ? `&#8377;${(saving/1000).toFixed(1)}k` : `&#8377;${saving}`;
-  return `
-    <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-      <div style="font-size:8px;color:#1B5E20;font-weight:900;margin-bottom:1px;white-space:nowrap;">${savingShort}</div>
-      <div style="font-size:7px;color:#4A6741;font-weight:700;margin-bottom:3px;white-space:nowrap;">${d.v}${d.v} kWh
-      <div style="width:14px;height:${Math.round((d.v/750)*70)}px;background:linear-gradient(to top,#8BC34A,#1B5E20);border-radius:2px 2px 0 0;"></div>
       <div style="font-size:7px;font-weight:700;color:#4A6741;margin-top:3px;">${d.m}</div>
     </div>`;
 }).join('');
