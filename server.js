@@ -696,7 +696,7 @@ const chartBars = monthlyData.map(d => {
       ${projectCard(projects[5],5)}
     </div>
     <div style="background:#1B5E20;color:white;border-radius:16px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;">
-    ${[
+  ${[
   {icon:'M', label:'MNRE Empanelled', sub:'Installer'},
   {icon:'T', label:'Tier-1 Brands Only', sub:'Waaree, Adani, Vikram'},
   {icon:'A', label:'5 Year Free AMC', sub:'Included'},
