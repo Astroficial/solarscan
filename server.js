@@ -413,45 +413,50 @@ async function imgToBase64(url, localPath) {
   const validDate  = new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const proposalNo = `SP-${new Date().getFullYear()}-${jobId.toUpperCase()}`;
 
-  const projectCard = (p, idx) => {
-    if (!p || !p.name) return `
-      <div style="flex:1;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
-        <div style="height:220px;background:linear-gradient(135deg,#1B5E20,#2E7D32);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:48px;margin-bottom:12px;">����</div>
-          <div style="font-size:18px;font-weight:900;color:white;">Project ${idx+1}</div>
-        </div>
-        <div style="padding:20px;flex:1;"><div style="font-size:13px;color:#4A6741;">No project data added</div></div>
-      </div>`;
+ const projectCard = (p, idx) => {
+  if (!p || !p.name) return `
+    <div style="width:calc(50% - 12px);height:560px;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
+      <div style="height:230px;background:linear-gradient(135deg,#1B5E20,#2E7D32);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div style="width:46px;height:46px;border-radius:50%;background:#F9A825;color:#1B5E20;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;margin-bottom:12px;">P</div>
+        <div style="font-size:18px;font-weight:900;color:white;">Project ${idx + 1}</div>
+      </div>
+      <div style="padding:18px;flex:1;">
+        <div style="font-size:13px;color:#4A6741;">No project data added</div>
+      </div>
+    </div>`;
 
-    const imgStyle = p.photo_url
-      ? `background-image:url('${p.photo_url}');background-size:cover;background-position:center;`
-      : `background:linear-gradient(135deg,#1B5E20,#2E7D32);`;
+  const imgStyle = p.photo_url
+    ? `background-image:url('${p.photo_url}');background-size:cover;background-position:center;`
+    : `background:linear-gradient(135deg,#1B5E20,#2E7D32);`;
 
-    return `
-      <div style="flex:1;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
-        <div style="height:220px;position:relative;${imgStyle}">
-          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65),transparent);"></div>
-          <div style="position:absolute;bottom:16px;left:16px;right:16px;color:white;">
-            <div style="font-size:20px;font-weight:900;">${p.name || ''}</div>
-            <div style="font-size:12px;margin-top:3px;opacity:0.9;">���� ${p.city || ''}</div>
-          </div>
+  return `
+    <div style="width:calc(50% - 12px);height:560px;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
+      <div style="height:230px;position:relative;${imgStyle}">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65),transparent);"></div>
+        <div style="position:absolute;bottom:16px;left:16px;right:16px;color:white;">
+          <div style="font-size:20px;font-weight:900;">${p.name || ''}</div>
+          <div style="font-size:12px;margin-top:3px;opacity:0.9;">Location: ${p.city || ''}</div>
         </div>
-        <div style="padding:20px;flex:1;display:flex;flex-direction:column;">
-          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-            <span style="background:#F9A825;color:#1B5E20;font-size:11px;font-weight:900;padding:4px 12px;border-radius:20px;">${p.cap || p.capacity || '5 kW'} System</span>
-            <span style="background:#F1F8E9;color:#2E7D32;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #C8E6C9;">${p.roof || 'Flat RCC'}</span>
-          </div>
-          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">��� ${p.kwh || '7,500 kWh/year'} estimated</div>
-          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">���� Installed: ${p.date || '2025'}</div>
-          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:12px;">��� Rating: ${p.rating || '4.9/5'}</div>
-          ${p.quote ? `
-            <div style="margin-top:auto;border-top:1px solid #C8E6C9;padding-top:12px;">
-              <div style="font-size:11px;color:#4A6741;font-style:italic;">"${p.quote}"</div>
-              <div style="font-size:10px;color:#2E7D32;font-weight:900;margin-top:4px;">��� ${p.quote_author || p.quoteAuthor || ''}</div>
-            </div>` : ''}
+      </div>
+
+      <div style="padding:18px;flex:1;display:flex;flex-direction:column;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <span style="background:#F9A825;color:#1B5E20;font-size:11px;font-weight:900;padding:4px 12px;border-radius:20px;">${p.cap || p.capacity || '5 kW'} System</span>
+          <span style="background:#F1F8E9;color:#2E7D32;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #C8E6C9;">${p.roof || 'Flat RCC'}</span>
         </div>
-      </div>`;
-  };
+
+        <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">Generation: ${p.kwh || '7,500 kWh/year'} estimated</div>
+        <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">Installed: ${p.date || '2025'}</div>
+        <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:10px;">Rating: ${p.rating || '4.9/5'}</div>
+
+        ${p.quote ? `
+          <div style="margin-top:auto;border-top:1px solid #C8E6C9;padding-top:10px;">
+            <div style="font-size:11px;color:#4A6741;font-style:italic;line-height:1.45;">"${p.quote}"</div>
+            <div style="font-size:10px;color:#2E7D32;font-weight:900;margin-top:5px;">— ${p.quote_author || p.quoteAuthor || ''}</div>
+          </div>` : ''}
+      </div>
+    </div>`;
+};
 
   const sectionHeader = (subtitle, title) => `
     <div style="background:#1B5E20;padding:40px 48px;color:white;">
