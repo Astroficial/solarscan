@@ -632,7 +632,7 @@ const chartBars = monthlyData.map(d => {
     <div style="margin-left:auto;background:linear-gradient(to right,#F9A825,#FF8F00);color:white;font-weight:900;padding:8px 16px;border-radius:10px;font-size:12px;">SUBSIDY READY</div>
   </div>
   <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">Welcome to <strong style="color:#1B5E20;">${installer.company_name || 'Surya Power Solutions'}</strong>! We are excited to present your customised <strong>${fin.systemKw} kW solar system</strong>. As an authorised PM Surya Ghar partner with over ${installer.years || '8'}+ years of excellence, we ensure a seamless transition to clean, affordable energy.</div>
-  <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">This proposal outlines your exact system specifications, financial savings, and the straightforward roadmap to claiming your <strong style="color:#1B5E20;">���${fin.subsidyAmount.toLocaleString('en-IN')}</strong> government subsidy.</div>
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">This proposal outlines your exact system specifications, financial savings, and the straightforward roadmap to claiming your <strong style="color:#1B5E20;">&#8377;.subsidyAmount.toLocaleString('en-IN')}</strong> government subsidy.</div>
   <div style="font-size:15px;color:#4A6741;line-height:1.8;">Please review the detailed projections inside. Our technical team is ready to answer any questions.</div>
   <div style="margin-top:32px;color:#1B5E20;font-weight:700;">Warm Regards,</div>
   <div style="font-family:Georgia,serif;font-size:36px;color:#2E7D32;opacity:0.9;margin-top:8px;">${installer.company_name || 'Surya Power'}</div>
@@ -772,16 +772,16 @@ const chartBars = monthlyData.map(d => {
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:24px;">
       <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
         <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;">Total System Cost</div>
-        <div style="font-size:20px;font-weight:900;color:#1A2F1A;margin-top:6px;">���${fin.quotedPrice.toLocaleString('en-IN')}</div>
+        <div style="font-size:20px;font-weight:900;color:#1A2F1A;margin-top:6px;">&#8377;.quotedPrice.toLocaleString('en-IN')}</div>
       </div>
       <div style="background:#E8F5E9;border:2px solid #8BC34A;border-radius:12px;padding:16px;position:relative;overflow:hidden;">
         <div style="position:absolute;top:0;right:0;background:#8BC34A;color:white;font-size:9px;font-weight:900;padding:3px 8px;border-radius:0 0 0 8px;">APPROVED</div>
         <div style="font-size:10px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:1px;">PM Surya Ghar Subsidy</div>
-        <div style="font-size:20px;font-weight:900;color:#2E7D32;margin-top:6px;">���${fin.subsidyAmount.toLocaleString('en-IN')}</div>
+        <div style="font-size:20px;font-weight:900;color:#2E7D32;margin-top:6px;">&#8377;.subsidyAmount.toLocaleString('en-IN')}</div>
       </div>
       <div style="background:#1B5E20;border-radius:12px;padding:16px;">
         <div style="font-size:10px;font-weight:700;color:#8BC34A;text-transform:uppercase;letter-spacing:1px;">Your Net Investment</div>
-        <div style="font-size:24px;font-weight:900;color:white;margin-top:6px;">���${fin.netCost.toLocaleString('en-IN')}</div>
+        <div style="font-size:24px;font-weight:900;color:white;margin-top:6px;">&#8377;.netCost.toLocaleString('en-IN')}</div>
       </div>
       <div style="background:#F1F8E9;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
         <div style="font-size:10px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:1px;">Payback Period</div>
@@ -795,12 +795,12 @@ const chartBars = monthlyData.map(d => {
         </div>
         ${[
           ['Annual Generation',   `${fin.yearlyKwh.toLocaleString('en-IN')} kWh`,             '#1A2F1A'],
-          ['Current Monthly Bill',`���${fin.monthlyBefore.toLocaleString('en-IN')}`,            '#1A2F1A'],
+          ['Current Monthly Bill',`&#8377;.monthlyBefore.toLocaleString('en-IN')}`,            '#1A2F1A'],
           ['Monthly Savings',     `���${Math.round(fin.annualSaving/12).toLocaleString('en-IN')}`,'#2E7D32'],
-          ['Annual Savings',      `���${fin.annualSaving.toLocaleString('en-IN')}`,             '#2E7D32'],
+          ['Annual Savings',      `&#8377;.annualSaving.toLocaleString('en-IN')}`,             '#2E7D32'],
           ['10 Year Savings',     `���${(fin.annualSaving*10).toLocaleString('en-IN')}`,        '#1A2F1A'],
           ['25 Year Savings',     `���${(fin.annualSaving*25).toLocaleString('en-IN')}`,        '#1A2F1A'],
-          ['25 Year Net Profit',  `���${fin.saving25yr.toLocaleString('en-IN')}`,               '#F9A825'],
+          ['25 Year Net Profit',  `&#8377;.saving25yr.toLocaleString('en-IN')}`,               '#F9A825'],
         ].map(r=>`
           <div style="display:flex;justify-content:space-between;padding:10px 20px;border-bottom:1px solid #C8E6C9;">
             <span style="font-size:12px;color:#4A6741;font-weight:600;">${r[0]}</span>
@@ -811,13 +811,13 @@ const chartBars = monthlyData.map(d => {
         <div style="display:flex;gap:12px;">
           <div style="flex:1;background:white;border:2px solid #C8E6C9;border-radius:12px;padding:14px;text-align:center;">
             <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;margin-bottom:6px;">Before Solar</div>
-            <div style="font-size:22px;font-weight:900;color:#1A2F1A;">���${fin.monthlyBefore.toLocaleString('en-IN')}</div>
+            <div style="font-size:22px;font-weight:900;color:#1A2F1A;">&#8377;.monthlyBefore.toLocaleString('en-IN')}</div>
             <div style="font-size:10px;color:#4A6741;margin-top:4px;">per month</div>
           </div>
           <div style="flex:1;background:#F1F8E9;border:2px solid #8BC34A;border-radius:12px;padding:14px;text-align:center;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-4px;right:-16px;background:#8BC34A;color:white;font-size:9px;font-weight:900;padding:4px 24px;transform:rotate(45deg);">SAVE ${fin.savePct}%</div>
             <div style="font-size:10px;color:#2E7D32;font-weight:700;text-transform:uppercase;margin-bottom:6px;">After Solar</div>
-            <div style="font-size:22px;font-weight:900;color:#1B5E20;">���${fin.monthlyAfter.toLocaleString('en-IN')}</div>
+            <div style="font-size:22px;font-weight:900;color:#1B5E20;">&#8377;.monthlyAfter.toLocaleString('en-IN')}</div>
             <div style="font-size:10px;color:#2E7D32;margin-top:4px;">per month</div>
           </div>
         </div>
@@ -931,7 +931,7 @@ const chartBars = monthlyData.map(d => {
       </div>
       <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:20px;">
         <div style="font-size:14px;font-weight:900;color:#1B5E20;margin-bottom:10px;">��� Important Note</div>
-        <div style="font-size:12px;color:#4A6741;line-height:1.7;">GST at prevailing rates will be charged extra. The PM Surya Ghar subsidy of ���${fin.subsidyAmount.toLocaleString('en-IN')} will be credited <strong style="color:#1B5E20;">directly to your linked bank account</strong> by the government. ����</div>
+        <div style="font-size:12px;color:#4A6741;line-height:1.7;">GST at prevailing rates will be charged extra. The PM Surya Ghar subsidy of &#8377;.subsidyAmount.toLocaleString('en-IN')} will be credited <strong style="color:#1B5E20;">directly to your linked bank account</strong> by the government. ����</div>
       </div>
     </div>
   </div>
