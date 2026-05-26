@@ -460,7 +460,7 @@ async function imgToBase64(url, localPath) {
 
   const sectionHeader = (subtitle, title) => `
     <div style="background:#1B5E20;padding:40px 48px;color:white;">
-      <div style="font-size:12px;font-weight:700;color:#F9A825;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">���� ${subtitle}</div>
+     <div style="font-size:12px;font-weight:700;color:#F9A825;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">${subtitle}</div>
       <div style="font-size:32px;font-weight:900;">${title}</div>
     </div>`;
 
