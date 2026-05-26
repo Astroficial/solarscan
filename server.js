@@ -754,7 +754,7 @@ const chartBars = monthlyData.map(d => {
         ['System Type',           'Grid-Tied (On-Grid) Rooftop Solar PV System'],
         ['Panel Model',           `${panelBrand} 550W Monocrystalline PERC Half-Cut`],
         ['Inverter Model',        `${inverterBrand} ${fin.systemKw}kW String Inverter (Wi-Fi Enabled)`],
-        ['Mounting Structure',    'Hot-Dip Galvanized (HDG) MS, 25�� Optimal Tilt'],
+        ['Mounting Structure',    'Hot-Dip Galvanized (HDG) MS, 25 deg Optimal Tilt'],
         ['Estimated Annual Gen.', `${fin.yearlyKwh.toLocaleString('en-IN')} kWh (Units) per year`],
       ].map((r,i)=>`
         <div style="display:flex;border-bottom:1px solid #C8E6C9;background:${i%2===0?'#F1F8E9':'white'};">
