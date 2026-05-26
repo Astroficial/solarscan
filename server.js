@@ -986,9 +986,9 @@ const chartBars = monthlyData.map(d => {
     <div style="font-size:32px;font-weight:900;text-align:center;margin-bottom:8px;">Thank You for Choosing Clean Energy</div>
     <div style="text-align:center;color:#8BC34A;font-weight:700;font-size:15px;margin-bottom:24px;">���� Together we are building a sustainable India.</div>
     <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(139,195,74,0.3);border-bottom:1px solid rgba(139,195,74,0.3);padding:16px 0;margin-bottom:16px;">
-      <span>���� ${installer.phone || '98765 43210'}</span>
-      <span>��� ${installer.email || 'info@suryapower.com'}</span>
-      <span>���� ${installer.website || 'www.suryapower.com'}</span>
+      <span>Tel: ${installer.phone || '98765 43210'}</span>
+<span>Email: ${installer.email || 'info@suryapower.com'}</span>
+<span>Web: ${installer.website || 'www.suryapower.com'}</span>
     </div>
     <div style="text-align:center;font-size:10px;color:#C8E6C9;opacity:0.8;text-transform:uppercase;letter-spacing:2px;">
       ${installer.company_name || 'Surya Power Solutions'} ��� GST: ${installer.gst || 'XXXXXXXXXXXX'} ��� Powered by SolarQuote
