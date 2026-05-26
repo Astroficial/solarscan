@@ -471,7 +471,7 @@ const chartBars = monthlyData.map(d => {
   return `
     <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
       <div style="font-size:8px;color:#1B5E20;font-weight:900;margin-bottom:1px;white-space:nowrap;">${savingShort}</div>
-      <div style="font-size:7px;color:#4A6741;font-weight:700;margin-bottom:3px;white-space:nowrap;">${d.v}u</div>
+      <div style="font-size:7px;color:#4A6741;font-weight:700;margin-bottom:3px;white-space:nowrap;">${d.v}${d.v} kWh
       <div style="width:14px;height:${Math.round((d.v/750)*70)}px;background:linear-gradient(to top,#8BC34A,#1B5E20);border-radius:2px 2px 0 0;"></div>
       <div style="font-size:7px;font-weight:700;color:#4A6741;margin-top:3px;">${d.m}</div>
     </div>`;
