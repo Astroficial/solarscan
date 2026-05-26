@@ -723,12 +723,12 @@ const chartBars = monthlyData.map(d => {
       <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:white;font-weight:700;font-size:13px;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;">AI Generated ��� Your Actual Roof View</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
-      ${[
-        {title:'System Size',  value:`${fin.systemKw} kW`,                    icon:'���'},
-        {title:'Solar Panels', value:`${panelCount}x ${panelBrand.split(' ')[0]} 550W`, icon:'������'},
-        {title:'Orientation',  value:'South / 25�� Tilt',                      icon:'����'},
-        {title:'Connection',   value:'On-Grid Net Meter',                     icon:'����'},
-      ].map(s=>`
+     ${[
+  {title:'System Size',  value:`${fin.systemKw} kW`, icon:'P'},
+  {title:'Solar Panels', value:`${panelCount}x ${panelBrand.split(' ')[0]} 550W`, icon:'S'},
+  {title:'Orientation',  value:'South / 25 deg Tilt', icon:'O'},
+  {title:'Connection',   value:'On-Grid Net Meter', icon:'G'},
+].map(s=>`
         <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
           <div style="font-size:22px;margin-bottom:8px;">${s.icon}</div>
           <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${s.title}</div>
