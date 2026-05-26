@@ -796,10 +796,10 @@ const chartBars = monthlyData.map(d => {
         ${[
           ['Annual Generation',   `${fin.yearlyKwh.toLocaleString('en-IN')} kWh`,             '#1A2F1A'],
           ['Current Monthly Bill',`&#8377;.monthlyBefore.toLocaleString('en-IN')}`,            '#1A2F1A'],
-          ['Monthly Savings',     `���${Math.round(fin.annualSaving/12).toLocaleString('en-IN')}`,'#2E7D32'],
+          ['Monthly Savings',     `&#8377{Math.round(fin.annualSaving/12).toLocaleString('en-IN')}`,'#2E7D32'],
           ['Annual Savings',      `&#8377;.annualSaving.toLocaleString('en-IN')}`,             '#2E7D32'],
-          ['10 Year Savings',     `���${(fin.annualSaving*10).toLocaleString('en-IN')}`,        '#1A2F1A'],
-          ['25 Year Savings',     `���${(fin.annualSaving*25).toLocaleString('en-IN')}`,        '#1A2F1A'],
+          ['10 Year Savings',     `&#8377{(fin.annualSaving*10).toLocaleString('en-IN')}`,        '#1A2F1A'],
+          ['25 Year Savings',     `&#8377{(fin.annualSaving*25).toLocaleString('en-IN')}`,        '#1A2F1A'],
           ['25 Year Net Profit',  `&#8377;.saving25yr.toLocaleString('en-IN')}`,               '#F9A825'],
         ].map(r=>`
           <div style="display:flex;justify-content:space-between;padding:10px 20px;border-bottom:1px solid #C8E6C9;">
