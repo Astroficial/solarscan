@@ -36,7 +36,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const TMP = '/tmp/solarscan';
 fs.mkdirSync(TMP, { recursive: true });
 
-// ������ HELPERS ���������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; HELPERS &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 function getPanelLayout(count) {
   if (count <= 12) return { rows: 2, cols: Math.ceil(count / 2) };
@@ -56,7 +56,7 @@ function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
     `Mount the panels on realistic elevated Indian rooftop GI/MS support structure with visible rails, braces, clamps, cross members, and RCC concrete pedestal blocks. ` +
     `If red support guide lines are visible, use them as guidance for extended support rods. Extend realistic GI/MS support rods from the solar panel frame down to the marked roof footing points. Place RCC concrete blocks at the base. ` +
     `The average support leg height required is approximately ${avgLeg} feet. This is a raised structure at 25-30 degree tilt angle. ` +
-    `The camera was pointing NORTH. Therefore all solar panels must face TRUE SOUTH ��� directly toward the camera. The full front glass surface of all panels must be visible. ` +
+    `The camera was pointing NORTH. Therefore all solar panels must face TRUE SOUTH &#8377; directly toward the camera. The full front glass surface of all panels must be visible. ` +
     `Preserve the original roof photo completely. Do not change roof geometry, parapet walls, vents, tanks, AC units, pipes, trees, towers, buildings, sky, or background. ` +
     `Add realistic shadows under panels, support rods, frames, and RCC blocks matching the original sunlight direction. ` +
     `Strict negative instructions: do not create one continuous solar sheet. Do not merge panels. Do not change panel count. Do not create floating panels. Do not distort roof or background.`
@@ -85,7 +85,7 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
   };
 }
 
-// ������ CLOUDINARY UPLOAD ���������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; CLOUDINARY UPLOAD &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
   const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
@@ -123,7 +123,7 @@ async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'imag
   return data.secure_url;
 }
 
-// ������ SAVE PROFILE ������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; SAVE PROFILE &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 app.post('/api/save-profile', upload.fields([
   { name: 'logo',     maxCount: 1 },
@@ -173,7 +173,7 @@ app.post('/api/save-profile', upload.fields([
   }
 });
 
-// ������ LOAD PROFILE ������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; LOAD PROFILE &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 app.get('/api/load-profile', async (req, res) => {
   try {
@@ -207,7 +207,7 @@ app.get('/api/load-profile', async (req, res) => {
   }
 });
 
-// ������ GENERATE QUOTE ������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; GENERATE QUOTE &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
   const jobId  = uuidv4().slice(0, 8);
@@ -346,11 +346,11 @@ const aiResult = await openai.images.edit({
   }
 });
 
-// ������ PDF GENERATION ������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; PDF GENERATION &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 async function generatePDF({ installer, customer, fin, panelBrand, inverterBrand, panelCount, aiImageUrl, jobId, pdfPath }) {
 
-  // Convert image to base64 ��� try local file first, then URL
+  // Convert image to base64 &#8377; try local file first, then URL
 async function imgToBase64(url, localPath) {
   let buf = null;
 
@@ -521,7 +521,7 @@ const chartBars = monthlyData.map(d => {
           <div style="font-weight:900;font-size:18px;">${installer.company_name || 'SURYA POWER'}</div>
           <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.9;">Solutions</div>
         </div>
-        <div style="width:40px;height:40px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">����</div>
+        <div style="width:40px;height:40px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">&#8377;�</div>
       </div>
     </div>
     <div style="position:absolute;top:80px;right:0;width:96px;height:100%;background:#F9A825;clip-path:polygon(100% 0,100% 100%,0 40%);z-index:0;"></div>
@@ -540,21 +540,21 @@ const chartBars = monthlyData.map(d => {
       <div>
         <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Contact Us:</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">����</div>
+          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">&#8377;�</div>
           <span style="color:white;font-weight:600;">${installer.phone || '+91 98765 43210'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
-          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">����</div>
+          <div style="width:24px;height:24px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">&#8377;�</div>
           <span style="color:white;font-weight:600;">${installer.website || 'www.suryapower.com'}</span>
         </div>
         <div style="background:#F9A825;color:#1A2F1A;font-weight:900;text-transform:uppercase;letter-spacing:2px;font-size:12px;padding:10px 28px;display:inline-block;border-radius:4px;">Learn More</div>
       </div>
       <div style="text-align:right;">
-        <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Our Service ����</div>
+        <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Our Service &#8377;�</div>
         ${['Energy Consultation','System Maintenance','Solar Panel Installation','Battery & Inverter Setup'].map(s => `
           <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px;">
             <span style="color:#C8E6C9;font-weight:600;font-size:13px;">${s}</span>
-            <div style="width:20px;height:20px;background:#8BC34A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;flex-shrink:0;">���</div>
+            <div style="width:20px;height:20px;background:#8BC34A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;flex-shrink:0;">&#8377;</div>
           </div>`).join('')}
       </div>
     </div>
@@ -567,7 +567,7 @@ const chartBars = monthlyData.map(d => {
   <div style="padding:48px;display:flex;flex-direction:column;height:100%;position:relative;z-index:1;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
       <div style="display:flex;align-items:center;gap:10px;color:white;">
-        ${installer.logo_url ? `<img src="${installer.logo_url}" style="height:44px;width:44px;border-radius:50%;object-fit:cover;border:2px solid #8BC34A;" />` : `<span style="font-size:32px;">����</span>`}
+        ${installer.logo_url ? `<img src="${installer.logo_url}" style="height:44px;width:44px;border-radius:50%;object-fit:cover;border:2px solid #8BC34A;" />` : `<span style="font-size:32px;">&#8377;�</span>`}
         <div>
           <div style="font-weight:900;font-size:22px;line-height:1;">${installer.company_name || 'SURYA POWER'}</div>
           <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;">Solutions</div>
@@ -580,7 +580,7 @@ const chartBars = monthlyData.map(d => {
       </div>
     </div>
     <div style="margin-bottom:24px;">
-      <div style="color:#F9A825;font-weight:700;letter-spacing:3px;text-transform:uppercase;font-size:13px;margin-bottom:12px;">���� India's Trusted Rooftop Solar EPC</div>
+      <div style="color:#F9A825;font-weight:700;letter-spacing:3px;text-transform:uppercase;font-size:13px;margin-bottom:12px;">&#8377;� India's Trusted Rooftop Solar EPC</div>
       <div style="font-size:52px;font-weight:900;color:white;line-height:1.1;">CLEAN ENERGY<br/>PROPOSAL</div>
     </div>
     <div style="flex:1;width:100%;border:4px solid #8BC34A;border-radius:24px;overflow:hidden;position:relative;min-height:220px;">
@@ -597,12 +597,12 @@ const chartBars = monthlyData.map(d => {
       </div>
       <div style="text-align:right;">
         <div style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(to right,#F1F8E9,#E8F5E9);border:1px solid #C8E6C9;padding:8px 16px;border-radius:20px;margin-bottom:12px;">
-          <span style="font-size:16px;">������</span>
+          <span style="font-size:16px;">&#8377;&#8377;</span>
           <span style="font-weight:700;color:#1B5E20;font-size:12px;">PM Surya Ghar: Muft Bijli Yojana</span>
-          <span style="color:#8BC34A;">���</span>
+          <span style="color:#8BC34A;">&#8377;</span>
         </div>
-        <div style="font-size:13px;font-weight:700;color:#1B5E20;">���� ${installer.website || 'www.suryapower.com'}</div>
-        <div style="font-size:13px;color:#4A6741;margin-top:4px;">���� ${installer.phone || '98765 43210'}</div>
+        <div style="font-size:13px;font-weight:700;color:#1B5E20;">&#8377;� ${installer.website || 'www.suryapower.com'}</div>
+        <div style="font-size:13px;color:#4A6741;margin-top:4px;">&#8377;� ${installer.phone || '98765 43210'}</div>
       </div>
     </div>
   </div>
@@ -612,7 +612,7 @@ const chartBars = monthlyData.map(d => {
 <div class="page" style="background:#F1F8E9;padding:48px;">
   <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:4px solid #1B5E20;padding-bottom:20px;margin-bottom:36px;">
     <div style="display:flex;align-items:center;gap:10px;color:#1B5E20;">
-      ${installer.logo_url ? `<img src="${installer.logo_url}" style="height:36px;width:36px;border-radius:50%;object-fit:cover;" />` : `<span style="font-size:24px;">����</span>`}
+      ${installer.logo_url ? `<img src="${installer.logo_url}" style="height:36px;width:36px;border-radius:50%;object-fit:cover;" />` : `<span style="font-size:24px;">&#8377;�</span>`}
       <div>
         <div style="font-weight:900;font-size:18px;">${installer.company_name || 'SURYA POWER'}</div>
         <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;">Solutions</div>
@@ -624,7 +624,7 @@ const chartBars = monthlyData.map(d => {
   </div>
   <div style="font-size:26px;font-weight:900;color:#1A2F1A;margin-bottom:24px;">Dear ${customer.name},</div>
   <div style="background:linear-gradient(to right,#FFF8E1,#F1F8E9);border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:28px;">
-    <div style="width:56px;height:56px;background:white;border-radius:50%;border:3px solid #F9A825;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">������</div>
+    <div style="width:56px;height:56px;background:white;border-radius:50%;border:3px solid #F9A825;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">&#8377;&#8377;</div>
     <div>
       <div style="font-size:18px;font-weight:900;color:#1B5E20;">PM Surya Ghar: Muft Bijli Yojana</div>
       <div style="font-size:12px;font-weight:700;color:#2E7D32;margin-top:2px;">Empanelled & Authorized Vendor</div>
@@ -642,7 +642,7 @@ const chartBars = monthlyData.map(d => {
     <div style="background:white;border:1px solid #C8E6C9;border-radius:16px;padding:16px 28px;text-align:center;">
       <div style="font-size:11px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Authorized & Empanelled</div>
       <div style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(to right,#F1F8E9,#E8F5E9);border:1px solid #C8E6C9;padding:8px 16px;border-radius:20px;">
-        <span>������</span><span style="font-weight:700;color:#1B5E20;font-size:13px;">PM Surya Ghar: Muft Bijli Yojana</span><span style="color:#8BC34A;">���</span>
+        <span>&#8377;&#8377;</span><span style="font-weight:700;color:#1B5E20;font-size:13px;">PM Surya Ghar: Muft Bijli Yojana</span><span style="color:#8BC34A;">&#8377;</span>
       </div>
     </div>
   </div>
@@ -720,7 +720,7 @@ const chartBars = monthlyData.map(d => {
     <div style="width:100%;height:340px;border-radius:20px;overflow:hidden;border:2px solid #C8E6C9;margin-bottom:24px;position:relative;">
       <img src="${aiImageSrc}" style="width:100%;height:100%;object-fit:cover;" />
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4),transparent);"></div>
-      <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:white;font-weight:700;font-size:13px;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;">AI Generated ��� Your Actual Roof View</div>
+      <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:white;font-weight:700;font-size:13px;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;">AI Generated &#8377; Your Actual Roof View</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
      ${[
@@ -737,7 +737,7 @@ const chartBars = monthlyData.map(d => {
     </div>
     <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:16px;">
-        <div style="background:linear-gradient(135deg,#8BC34A,#2E7D32);padding:14px;border-radius:50%;font-size:24px;">����</div>
+        <div style="background:linear-gradient(135deg,#8BC34A,#2E7D32);padding:14px;border-radius:50%;font-size:24px;">&#8377;�</div>
         <div>
           <div style="font-size:17px;font-weight:900;color:#1B5E20;">Environmental Impact</div>
           <div style="font-size:13px;font-weight:700;color:#4A6741;">Offsets ${fin.co2} Tonnes of CO2 emissions annually</div>
@@ -749,7 +749,7 @@ const chartBars = monthlyData.map(d => {
       </div>
     </div>
     <div style="background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;">
-      <div style="background:#1B5E20;padding:12px 20px;color:white;font-weight:700;font-size:14px;">��� Detailed Specifications</div>
+      <div style="background:#1B5E20;padding:12px 20px;color:white;font-weight:700;font-size:14px;">&#8377; Detailed Specifications</div>
       ${[
         ['System Type',           'Grid-Tied (On-Grid) Rooftop Solar PV System'],
         ['Panel Model',           `${panelBrand} 550W Monocrystalline PERC Half-Cut`],
@@ -791,7 +791,7 @@ const chartBars = monthlyData.map(d => {
     <div style="display:flex;gap:24px;">
       <div style="flex:1;background:white;border:2px solid #C8E6C9;border-radius:16px;overflow:hidden;">
         <div style="background:#E8F5E9;padding:14px 20px;border-bottom:2px solid #C8E6C9;">
-          <div style="font-weight:900;color:#1B5E20;font-size:14px;">���� Savings Projections</div>
+          <div style="font-weight:900;color:#1B5E20;font-size:14px;">&#8377;� Savings Projections</div>
         </div>
         ${[
           ['Annual Generation',   `${fin.yearlyKwh.toLocaleString('en-IN')} kWh`,             '#1A2F1A'],
@@ -866,7 +866,7 @@ const chartBars = monthlyData.map(d => {
       </table>
     </div>
     <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;gap:16px;">
-      <div style="background:#E8F5E9;padding:10px;border-radius:50%;font-size:20px;flex-shrink:0;align-self:flex-start;">���</div>
+      <div style="background:#E8F5E9;padding:10px;border-radius:50%;font-size:20px;flex-shrink:0;align-self:flex-start;">&#8377;</div>
       <div>
         <div style="font-size:15px;font-weight:900;color:#1B5E20;margin-bottom:6px;">Balance of System (BOS) Inclusion Note:</div>
         <div style="font-size:12px;color:#4A6741;font-weight:600;line-height:1.6;">All necessary civil work for foundation blocks, PVC conduits, junction boxes, cable trays, and minor hardware required for a safe, code-compliant installation are fully included in the system cost.</div>
@@ -880,25 +880,25 @@ const chartBars = monthlyData.map(d => {
   ${sectionHeader('Commercials', 'Pricing & Payment Terms')}
   <div style="padding:28px 48px;display:flex;flex-direction:column;gap:22px;">
     <div style="background:white;border:4px solid #1B5E20;border-radius:16px;padding:28px;position:relative;margin-top:12px;">
-      <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:#1B5E20;color:white;padding:6px 20px;border-radius:20px;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">���� Final Quotation</div>
+      <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:#1B5E20;color:white;padding:6px 20px;border-radius:20px;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">&#8377;� Final Quotation</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:8px;">
         <span style="font-size:17px;font-weight:700;color:#4A6741;">Total System Cost</span>
-        <span style="font-size:20px;font-weight:900;color:#1A2F1A;">��� ${fin.quotedPrice.toLocaleString('en-IN')}</span>
+        <span style="font-size:20px;font-weight:900;color:#1A2F1A;">&#8377; ${fin.quotedPrice.toLocaleString('en-IN')}</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:20px;border-bottom:2px dashed #C8E6C9;color:#2E7D32;">
         <span style="font-size:15px;font-weight:700;">Less: PM Surya Ghar Subsidy</span>
-        <span style="font-size:17px;font-weight:900;">- ��� ${fin.subsidyAmount.toLocaleString('en-IN')}</span>
+        <span style="font-size:17px;font-weight:900;">- &#8377; ${fin.subsidyAmount.toLocaleString('en-IN')}</span>
       </div>
       <div style="background:#F1F8E9;padding:20px 24px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;border:1px solid #C8E6C9;">
         <div>
           <div style="font-size:11px;font-weight:900;color:#1B5E20;text-transform:uppercase;letter-spacing:2px;">Net Amount Payable</div>
           <div style="font-size:10px;color:#4A6741;margin-top:2px;">*Excluding GST as applicable</div>
         </div>
-        <div style="font-size:44px;font-weight:900;color:#1B5E20;">��� ${fin.netCost.toLocaleString('en-IN')}</div>
+        <div style="font-size:44px;font-weight:900;color:#1B5E20;">&#8377; ${fin.netCost.toLocaleString('en-IN')}</div>
       </div>
     </div>
     <div>
-      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:12px;">���� Payment Milestones</div>
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:12px;">&#8377;� Payment Milestones</div>
       <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;overflow:hidden;">
         <table>
           <thead><tr style="background:#E8F5E9;color:#2E7D32;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">
@@ -908,9 +908,9 @@ const chartBars = monthlyData.map(d => {
           </tr></thead>
           <tbody>
             ${[
-              ['20% Advance',          'On Proposal Signing (Due Today)',      `��� ${fin.advance.toLocaleString('en-IN')}`],
-              ['70% Material Readiness','Before Material Delivery (Day 3-5)',  `��� ${fin.material.toLocaleString('en-IN')}`],
-              ['10% Commissioning',    'After Meter Install & Testing',        `��� ${fin.final.toLocaleString('en-IN')}`],
+              ['20% Advance',          'On Proposal Signing (Due Today)',      `&#8377; ${fin.advance.toLocaleString('en-IN')}`],
+              ['70% Material Readiness','Before Material Delivery (Day 3-5)',  `&#8377; ${fin.material.toLocaleString('en-IN')}`],
+              ['10% Commissioning',    'After Meter Install & Testing',        `&#8377; ${fin.final.toLocaleString('en-IN')}`],
             ].map((r,i)=>`
               <tr style="border-top:1px solid #C8E6C9;background:${i%2===1?'#F1F8E9':'white'};">
                 <td style="padding:13px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${r[0]}</td>
@@ -923,15 +923,15 @@ const chartBars = monthlyData.map(d => {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div style="background:#1B5E20;color:white;padding:20px;border-radius:16px;">
-        <div style="font-size:11px;font-weight:900;color:#F9A825;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);">���� Bank Details</div>
+        <div style="font-size:11px;font-weight:900;color:#F9A825;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);">&#8377;� Bank Details</div>
         <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">Bank:</span>${installer.bank_name || 'HDFC Bank'}</div>
         <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">Account:</span>${installer.account_no || 'XXXX XXXX XXXX'}</div>
         <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">IFSC:</span>${installer.ifsc || 'HDFC0001234'}</div>
-        <div style="font-size:12px;font-weight:900;color:#F9A825;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);">��� UPI: ${installer.upi || 'contact@suryapower.com'}</div>
+        <div style="font-size:12px;font-weight:900;color:#F9A825;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);">&#8377; UPI: ${installer.upi || 'contact@suryapower.com'}</div>
       </div>
       <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:20px;">
-        <div style="font-size:14px;font-weight:900;color:#1B5E20;margin-bottom:10px;">��� Important Note</div>
-        <div style="font-size:12px;color:#4A6741;line-height:1.7;">GST at prevailing rates will be charged extra. The PM Surya Ghar subsidy of &#8377;.subsidyAmount.toLocaleString('en-IN')} will be credited <strong style="color:#1B5E20;">directly to your linked bank account</strong> by the government. ����</div>
+        <div style="font-size:14px;font-weight:900;color:#1B5E20;margin-bottom:10px;">&#8377; Important Note</div>
+        <div style="font-size:12px;color:#4A6741;line-height:1.7;">GST at prevailing rates will be charged extra. The PM Surya Ghar subsidy of &#8377;.subsidyAmount.toLocaleString('en-IN')} will be credited <strong style="color:#1B5E20;">directly to your linked bank account</strong> by the government. &#8377;�</div>
       </div>
     </div>
   </div>
@@ -940,7 +940,7 @@ const chartBars = monthlyData.map(d => {
 <!-- PAGE 10: NEXT STEPS + FOOTER -->
 <div class="page" style="background:#F1F8E9;padding:48px;display:flex;flex-direction:column;">
   <div style="margin-bottom:36px;">
-    <div style="font-size:28px;font-weight:900;color:#1B5E20;text-align:center;margin-bottom:32px;">���� Your Journey to Clean Energy</div>
+    <div style="font-size:28px;font-weight:900;color:#1B5E20;text-align:center;margin-bottom:32px;">&#8377;� Your Journey to Clean Energy</div>
     <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;">
       <div style="position:absolute;top:28px;left:0;width:100%;height:4px;background:#C8E6C9;border-radius:2px;z-index:0;"></div>
       ${[
@@ -956,7 +956,7 @@ const chartBars = monthlyData.map(d => {
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
     <div style="background:white;padding:24px;border-radius:16px;border:2px solid #C8E6C9;border-top:8px solid #8BC34A;">
-      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:16px;">��� Scope Included</div>
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:16px;">&#8377; Scope Included</div>
       ${['All Solar Materials & Components','End-to-End Installation & Wiring','Custom Mounting Structure','Subsidy Documentation & Portal Entry','Net Meter Application Process','1 Year Free Workmanship Warranty'].map(s=>`
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <div style="width:8px;height:8px;border-radius:50%;background:#8BC34A;flex-shrink:0;"></div>
@@ -964,7 +964,7 @@ const chartBars = monthlyData.map(d => {
         </div>`).join('')}
     </div>
     <div style="background:white;padding:24px;border-radius:16px;border:2px solid #C8E6C9;border-top:8px solid #4A6741;">
-      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:16px;">��� Scope Excluded</div>
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:16px;">&#8377; Scope Excluded</div>
       ${['Official DISCOM / Utility Fees','Major Pre-existing Electrical Upgrades','Major Civil Roof Repairs before installation','Water arrangement for panel cleaning'].map(s=>`
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <div style="width:8px;height:8px;border-radius:50%;background:#4A6741;opacity:0.5;flex-shrink:0;"></div>
@@ -979,19 +979,19 @@ const chartBars = monthlyData.map(d => {
     </div>
     <div style="width:35%;border-top:2px solid #1B5E20;padding-top:12px;text-align:center;">
       <div style="font-size:15px;font-weight:900;color:#1A2F1A;">${installer.company_name || 'Surya Power Solutions'}</div>
-      <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Authorised Signatory ��� ${today}</div>
+      <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Authorised Signatory &#8377; ${today}</div>
     </div>
   </div>
   <div style="background:#1B5E20;margin:-48px;margin-top:auto;padding:40px 48px;color:white;">
     <div style="font-size:32px;font-weight:900;text-align:center;margin-bottom:8px;">Thank You for Choosing Clean Energy</div>
-    <div style="text-align:center;color:#8BC34A;font-weight:700;font-size:15px;margin-bottom:24px;">���� Together we are building a sustainable India.</div>
+    <div style="text-align:center;color:#8BC34A;font-weight:700;font-size:15px;margin-bottom:24px;">&#8377;� Together we are building a sustainable India.</div>
     <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(139,195,74,0.3);border-bottom:1px solid rgba(139,195,74,0.3);padding:16px 0;margin-bottom:16px;">
       <span>Tel: ${installer.phone || '98765 43210'}</span>
 <span>Email: ${installer.email || 'info@suryapower.com'}</span>
 <span>Web: ${installer.website || 'www.suryapower.com'}</span>
     </div>
-    <div style="text-align:center;font-size:10px;color:#C8E6C9;opacity:0.8;text-transform:uppercase;letter-spacing:2px;">
-      ${installer.company_name || 'Surya Power Solutions'} ��� GST: ${installer.gst || 'XXXXXXXXXXXX'} ��� Powered by SolarQuote
+  <div style="text-align:center;font-size:11px;color:#C8E6C9;font-weight:600;letter-spacing:0.5px;">
+      ${installer.company_name || 'Surya Power Solutions'} &#8377; GST: ${installer.gst || 'XXXXXXXXXXXX'} &#8377; Powered by SolarQuote
     </div>
   </div>
 </div>
@@ -1025,7 +1025,7 @@ const chartBars = monthlyData.map(d => {
   return pdfBuffer;
 }
 
-// ������ SERVE ���������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+// &#8377;&#8377; SERVE &#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;&#8377;
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'static', 'index.html'));
