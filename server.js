@@ -696,11 +696,11 @@ const chartBars = monthlyData.map(d => {
       ${projectCard(projects[5],5)}
     </div>
     <div style="background:#1B5E20;color:white;border-radius:16px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;">
-      ${[
-        {icon:'���', label:'MNRE Empanelled',   sub:'Installer'},
-        {icon:'����', label:'Tier-1 Brands Only',sub:'Waaree, Adani, Vikram'},
-        {icon:'���', label:'5 Year Free AMC',   sub:'Included'},
-      ].map((c,i)=>`
+    ${[
+  {icon:'M', label:'MNRE Empanelled', sub:'Installer'},
+  {icon:'T', label:'Tier-1 Brands Only', sub:'Waaree, Adani, Vikram'},
+  {icon:'A', label:'5 Year Free AMC', sub:'Included'},
+].map((c,i)=>`
         <div style="display:flex;align-items:center;gap:12px;flex:1;justify-content:center;">
           <div style="background:#8BC34A;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1B5E20;font-weight:900;font-size:16px;">${c.icon}</div>
           <div style="text-align:center;">
