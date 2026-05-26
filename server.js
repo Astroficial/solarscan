@@ -730,7 +730,7 @@ const chartBars = monthlyData.map(d => {
   {title:'Connection',   value:'On-Grid Net Meter', icon:'G'},
 ].map(s=>`
         <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
-          <div style="font-size:22px;margin-bottom:8px;">${s.icon}</div>
+         <div style="width:28px;height:28px;border-radius:50%;background:#E8F5E9;color:#1B5E20;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;margin-bottom:8px;">${s.icon}</div>
           <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${s.title}</div>
           <div style="font-size:14px;font-weight:900;color:#1A2F1A;">${s.value}</div>
         </div>`).join('')}
