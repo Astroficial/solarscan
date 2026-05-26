@@ -740,7 +740,7 @@ const chartBars = monthlyData.map(d => {
         <div style="background:linear-gradient(135deg,#8BC34A,#2E7D32);padding:14px;border-radius:50%;font-size:24px;">����</div>
         <div>
           <div style="font-size:17px;font-weight:900;color:#1B5E20;">Environmental Impact</div>
-          <div style="font-size:13px;font-weight:700;color:#4A6741;">Offsets ${fin.co2} Tonnes of CO��� emissions annually</div>
+          <div style="font-size:13px;font-weight:700;color:#4A6741;">Offsets ${fin.co2} Tonnes of CO2 emissions annually</div>
         </div>
       </div>
       <div style="background:#F1F8E9;padding:12px 16px;border-radius:12px;border:1px solid #C8E6C9;text-align:right;">
