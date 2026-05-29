@@ -545,7 +545,7 @@ function buildProjectSlots() {
       var slot = document.createElement('div');
       slot.className = 'project-slot';
       slot.innerHTML = `
-        <div class="project-slot-header">Project ${idx + 1} <span class="badge">Project Proof Page ${Math.floor(idx/3)+1}</span></div>
+        <div class="project-slot-header">Project ${idx + 1} <span class="badge">Project Proof Page ${Math.floor(idx/2)+1}</span></div>
         <div class="photo-placeholder" id="pp-placeholder-${idx}" onclick="document.getElementById('pp-input-${idx}').click()">
   Upload project photo
 </div>
