@@ -1108,8 +1108,16 @@ fd.append('leg_heights_ft',   JSON.stringify(legHeights));
 });
       if (!res.ok) { var err = await res.json(); throw new Error(err.error || 'Server error'); }
       var data = await res.json();
-      S.result = data;
-      showResult(data);
+console.log('Generate quote response:', data);
+
+S.result = data;
+
+if (!data.pdf_url) {
+  alert('PDF was not returned by backend. Check Railway logs.');
+  return;
+}
+
+showResult(data);
     } catch(err) {
       alert('Error: ' + err.message + '\n\nPlease try again.');
       go(3);
