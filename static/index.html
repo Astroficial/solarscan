@@ -768,10 +768,13 @@ function updatePanelCount() {
 }
 
 function updateNetCost() {
-  var quoted  = parseInt(document.getElementById('quoted-price').value) || 0;
+  var quoted = parseInt(document.getElementById('quoted-price').value) || 0;
   var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 0;
-  var net     = quoted - subsidy;
-  document.getElementById('net-cost').value = 'Rs ' + net.toLocaleString('en-IN');
+  var net = Math.max(0, quoted - subsidy);
+
+  document.getElementById('net-cost').value = quoted > 0
+    ? 'Rs ' + net.toLocaleString('en-IN')
+    : 'Auto calculated by backend';
 }
 
 // ── PHOTO ─────────────────────────────────────────────────────────────────────
