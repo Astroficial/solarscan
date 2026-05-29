@@ -1038,6 +1038,10 @@ function burnMarkingsToBlob(cb) {
       x.beginPath(); x.arc(leg.bottom.x*sfx, leg.bottom.y*sfy, 9*sfx, 0, Math.PI*2);
       x.fillStyle = '#ff6b35'; x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 2*sfx; x.stroke();
       var ft = Math.round(((leg.bottom.y - leg.top.y) / canvas.height) * 15);
+      console.log('Suggested Quote:', f.suggestedQuote);
+console.log('Installer Cost:', f.installerCost);
+console.log('Estimated Margin:', f.estimatedMargin);
+console.log('Margin %:', f.estimatedMarginPct);
       x.font = 'bold ' + Math.round(12*sfx) + 'px sans-serif';
       x.fillStyle = '#ff4500';
       x.fillText('LEG ~' + ft + 'ft', (leg.top.x+10)*sfx, ((leg.top.y+leg.bottom.y)/2)*sfy);
