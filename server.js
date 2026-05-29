@@ -293,38 +293,75 @@ function calcFinancials(
     final: Math.round(netCost * 0.10),
   };
 }
-   const netCost = quotedPrice - subsidyAmount;
-  const yearlyKwh = systemKw * 1500;
-  const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
-  const annualSaving = Math.round(yearlyKwh * unitRate);
-  const payback = (netCost / Math.max(annualSaving, 1)).toFixed(1);
-  const saving25yr = Math.round((annualSaving * 25) - netCost);
-  const monthlyAfter = Math.max(0, Math.round(monthlyBill - annualSaving / 12));
-  const savePct = monthlyBill > 0
-    ? Math.round(((monthlyBill - monthlyAfter) / monthlyBill) * 100)
-    : 0;
-  const co2 = ((yearlyKwh * 0.82) / 1000).toFixed(1);
-  const trees = Math.round(yearlyKwh * 0.82 / 1000 * 24);
+  // ---------------------------- CLOUDINARY UPLOAD -------------------------------
 
-  return {
-    systemKw,
-    quotedPrice,
-    subsidyAmount,
-    netCost,
-    yearlyKwh,
-    annualSaving,
-    payback,
-    saving25yr,
-    monthlyBefore: monthlyBill,
-    monthlyAfter,
-    savePct,
-    co2,
-    trees,
-    advance: Math.round(netCost * 0.20),
-    material: Math.round(netCost * 0.70),
-    final: Math.round(netCost * 0.10),
-  };
+async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
+  const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+
+  const isProfile = publicId.includes('profile');
+
+  const fileName = resourceType === 'raw'
+    ? (isProfile ? `${publicId}.json` : `${publicId}.pdf`)
+    : `${publicId}.jpg`;
+
+  const fileType = resourceType === 'raw'
+    ? (isProfile ? 'application/json' : 'application/pdf')
+    : 'image/jpeg';
+
+  const formData = new FormData();
+  formData.append('file', new Blob([buffer], { type: fileType }), fileName);
+  formData.append('folder', folder);
+  formData.append('public_id', publicId);
+  formData.append('overwrite', 'true');
+
+  const authHeader = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
+
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${authHeader}`,
+    },
+    body: formData,
+  });
+
+  const responseText = await response.text();
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error(`Cloudinary non-JSON response: ${responseText.slice(0, 200)}`);
+  }
+
+  if (!response.ok || data.error) {
+    throw new Error('Cloudinary: ' + (data.error?.message || responseText));
+  }
+
+  if (!data.secure_url) {
+    throw new Error('Cloudinary: secure_url missing');
+  }
+
+  console.log(`Cloudinary upload OK: ${data.public_id}`);
+  return data.secure_url;
 }
+
+// ---------------------------- SAVE PROFILE ------------------------------------
+
+app.post('/api/save-profile', upload.fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'project0', maxCount: 1 },
+  { name: 'project1', maxCount: 1 },
+  { name: 'project2', maxCount: 1 },
+  { name: 'project3', maxCount: 1 },
+  { name: 'project4', maxCount: 1 },
+  { name: 'project5', maxCount: 1 },
+]), async (req, res) => {
+  try {
+    const installerId = req.body.installer_id || 'default';
+    const profile = JSON.parse(req.body.profile_json || '{}');
+
+    if (req.files?.logo?.[0]) {
+      profile.logo_url = await uploadToCloudinary(
         req.files.logo[0].buffer,
         `solarscan/${installerId}`,
         'logo',
@@ -360,6 +397,7 @@ function calcFinancials(
     fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
 
     const profileBuf = Buffer.from(JSON.stringify(profile, null, 2));
+
     await uploadToCloudinary(
       profileBuf,
       `solarscan/${installerId}`,
@@ -373,7 +411,6 @@ function calcFinancials(
     res.status(500).json({ error: err.message });
   }
 });
-
 // ---------------------------- LOAD PROFILE ------------------------------------
 
 app.get('/api/load-profile', async (req, res) => {
