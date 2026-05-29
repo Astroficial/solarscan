@@ -1194,7 +1194,63 @@ function resetQuote() {
   document.getElementById('photo-input').value = '';
   go(1);
 }
+// ── COST CALCULATOR ───────────────────────────────────────────────────────────
+function toggleCalc() {
+  var body = document.getElementById('calc-body');
+  var arrow = document.getElementById('calc-arrow');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    arrow.textContent = '▼';
+  } else {
+    body.style.display = 'none';
+    arrow.textContent = '▶';
+  }
+}
 
+function calcProfit() {
+  var kw      = parseFloat(document.getElementById('kw').value) || 5;
+  var watt    = parseInt(document.getElementById('panel-watt').value) || 550;
+  var panels  = Math.ceil((kw * 1000) / watt);
+
+  var panelRate  = parseFloat(document.getElementById('c-panel-rate').value) || 0;
+  var inverter   = parseFloat(document.getElementById('c-inverter').value) || 0;
+  var structure  = parseFloat(document.getElementById('c-structure').value) || 0;
+  var cableCost  = parseFloat(document.getElementById('c-cable-cost').value) || 0;
+  var labour     = parseFloat(document.getElementById('c-labour').value) || 0;
+  var other      = parseFloat(document.getElementById('c-other').value) || 0;
+
+  if (!panelRate && !inverter && !structure) return;
+
+  var panelTotal  = panelRate * kw * 1000;
+  var totalCost   = panelTotal + inverter + structure + cableCost + labour + other;
+  var quotedPrice = parseInt(document.getElementById('quoted-price').value) || 0;
+  var subsidy     = parseInt(document.getElementById('subsidy-amount').value) || 0;
+  var netQuoted   = quotedPrice - subsidy;
+  var profit      = netQuoted - totalCost;
+  var marginPct   = totalCost > 0 ? Math.round((profit / netQuoted) * 100) : 0;
+
+  document.getElementById('calc-result').style.display = 'block';
+  document.getElementById('c-panel-total').textContent = 'Rs ' + Math.round(panelTotal).toLocaleString('en-IN');
+  document.getElementById('c-total-cost').textContent  = 'Rs ' + Math.round(totalCost).toLocaleString('en-IN');
+  document.getElementById('c-profit').textContent      = 'Rs ' + Math.round(profit).toLocaleString('en-IN');
+  document.getElementById('c-margin-pct').textContent  = marginPct + '%';
+
+  var suggestion = '';
+  if (marginPct < 10) {
+    suggestion = '⚠️ Margin too low. Increase quoted price.';
+    document.getElementById('c-profit').style.color = '#ff6b6b';
+    document.getElementById('c-margin-pct').style.color = '#ff6b6b';
+  } else if (marginPct < 20) {
+    suggestion = 'Acceptable margin. You can quote higher.';
+    document.getElementById('c-profit').style.color = '#F9A825';
+    document.getElementById('c-margin-pct').style.color = '#F9A825';
+  } else {
+    suggestion = '✅ Good margin. Competitive price.';
+    document.getElementById('c-profit').style.color = '#8BC34A';
+    document.getElementById('c-margin-pct').style.color = '#8BC34A';
+  }
+  document.getElementById('c-suggestion').textContent = suggestion;
+}
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildProjectSlots();
 updateNetCost();
