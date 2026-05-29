@@ -136,16 +136,7 @@ function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount, site 
     extraCosts:   totalExtra,
   };
 }
-  const netCost = quotedPrice - subsidyAmount;
-  const yearlyKwh = systemKw * 1500;
-  const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
-  const annualSaving = Math.round(yearlyKwh * unitRate);
-  const payback = (netCost / Math.max(annualSaving, 1)).toFixed(1);
-  const saving25yr = Math.round((annualSaving * 25) - netCost);
-  const monthlyAfter = Math.max(0, Math.round(monthlyBill - annualSaving / 12));
-  const savePct = monthlyBill > 0
-    ? Math.round(((monthlyBill - monthlyAfter) / monthlyBill) * 100)
-    : 0;
+
   const co2 = ((yearlyKwh * 0.82) / 1000).toFixed(1);
   const trees = Math.round(yearlyKwh * 0.82 / 1000 * 24);
 
