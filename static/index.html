@@ -1156,6 +1156,16 @@ function downloadPDF() {
     return;
   }
 
+  var a = document.createElement('a');
+  a.href = S.result.pdf_url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.download = 'SolarQuote-Proposal.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
   window.open(S.result.pdf_url, '_blank');
 }
 
