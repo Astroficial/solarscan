@@ -1055,6 +1055,14 @@ async function generate() {
     fd.append('customer_phone',   cphone);
     fd.append('customer_address', caddr);
     fd.append('leg_heights_ft',   JSON.stringify(legHeights));
+    fd.append('site_city',     document.getElementById('site-city').value || '');
+fd.append('site_discom',   document.getElementById('site-discom').value || '');
+fd.append('site_units',    document.getElementById('site-units').value || '0');
+fd.append('site_load',     document.getElementById('site-load').value || '5');
+fd.append('site_cable',    document.getElementById('site-cable').value || '15');
+fd.append('site_access',   document.getElementById('site-access').value || 'easy');
+fd.append('site_mounting', document.getElementById('site-mounting').value || 'ballast');
+fd.append('site_shading',  document.getElementById('site-shading').value || 'none');
 
     try {
      var res = await fetch('/api/generate-quote', {
