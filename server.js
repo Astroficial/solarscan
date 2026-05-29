@@ -497,13 +497,28 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
     const systemKw = parseFloat(req.body.system_kw || 5);
     const panelWatt = parseInt(req.body.panel_watt || 550);
     const panelCount = Math.ceil((systemKw * 1000) / panelWatt);
-    const quotedPrice = parseInt(req.body.quoted_price || 325000);
-    const subsidyAmount = parseInt(req.body.subsidy_amount || 78000);
-    const monthlyBill = parseInt(req.body.monthly_bill || 3000);
-    const roofType = req.body.roof_type || 'flat_rcc';
-    const panelBrand = req.body.panel_brand || 'Waaree Solar';
-    const inverterBrand = req.body.inverter_brand || 'Solis';
-    const installerId = req.body.installer_id || 'default';
+   const quotedPrice = parseInt(req.body.quoted_price || 0);
+const subsidyAmount = parseInt(req.body.subsidy_amount || 0);
+const monthlyBill = parseInt(req.body.monthly_bill || 3000);
+
+const roofType = req.body.roof_type || 'flat_rcc';
+const panelBrand = req.body.panel_brand || 'Waaree Solar';
+const inverterBrand = req.body.inverter_brand || 'Solis';
+const installerId = req.body.installer_id || 'default';
+
+const site = {
+  customerType: req.body.customer_type || 'residential',
+  cityDiscom: req.body.city_discom || 'other',
+  monthlyUnits: parseInt(req.body.monthly_units || 0),
+  sanctionedLoad: parseFloat(req.body.sanctioned_load || 0),
+  cableDistance: parseFloat(req.body.cable_distance || 30),
+  phaseType: req.body.phase_type || 'single',
+  mountingType: req.body.mounting_type || 'normal',
+  structureHeight: parseFloat(req.body.structure_height || 3),
+  shading: req.body.shading || 'none',
+  rooftopAccess: req.body.rooftop_access || 'easy',
+  roofType,
+};
 
     let legHeights = [3];
 
