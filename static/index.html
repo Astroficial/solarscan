@@ -295,78 +295,9 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
     <div class="step-title">Quote Details</div>
 
     <!-- Pricing — most prominent -->
-    <!-- COST CALCULATOR -->
-<div style="background:#0a1520;border:1px solid #1B5E20;border-radius:12px;padding:16px;margin-bottom:16px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleCalc()">
-    <div style="color:#8BC34A;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Calculate My Cost & Profit</div>
-    <div id="calc-arrow" style="color:#8BC34A;font-size:18px;">▼</div>
-  </div>
-
-  <div id="calc-body" style="margin-top:14px;">
-    <div class="hint" style="margin-bottom:12px;font-size:12px;">Fill your actual costs. This is private — not shown in proposal.</div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Panel Cost (Rs/W)</label>
-        <input type="number" id="c-panel-rate" placeholder="28" oninput="calcProfit()">
-      </div>
-      <div class="ig">
-        <label>Inverter Cost (Rs)</label>
-        <input type="number" id="c-inverter" placeholder="18000" oninput="calcProfit()">
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Structure Cost (Rs)</label>
-        <input type="number" id="c-structure" placeholder="12000" oninput="calcProfit()">
-      </div>
-      <div class="ig">
-        <label>Cable & DB Cost (Rs)</label>
-        <input type="number" id="c-cable-cost" placeholder="8000" oninput="calcProfit()">
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Labour Cost (Rs)</label>
-        <input type="number" id="c-labour" placeholder="10000" oninput="calcProfit()">
-      </div>
-      <div class="ig">
-        <label>Other / Transport (Rs)</label>
-        <input type="number" id="c-other" placeholder="3000" oninput="calcProfit()">
-      </div>
-    </div>
-
-    <!-- Results -->
-    <div id="calc-result" style="display:none;margin-top:12px;background:#0f1923;border-radius:10px;padding:14px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div style="background:#111e2b;border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:#aaa;text-transform:uppercase;margin-bottom:4px;">Total Cost</div>
-          <div id="c-total-cost" style="font-size:18px;font-weight:900;color:#fff;">-</div>
-        </div>
-        <div style="background:#111e2b;border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:#aaa;text-transform:uppercase;margin-bottom:4px;">Panel Cost</div>
-          <div id="c-panel-total" style="font-size:18px;font-weight:900;color:#fff;">-</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="background:#1a3a1a;border:1px solid #2E7D32;border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:#8BC34A;text-transform:uppercase;margin-bottom:4px;">Your Profit</div>
-          <div id="c-profit" style="font-size:22px;font-weight:900;color:#8BC34A;">-</div>
-        </div>
-        <div style="background:#1a3a1a;border:1px solid #2E7D32;border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:#8BC34A;text-transform:uppercase;margin-bottom:4px;">Margin %</div>
-          <div id="c-margin-pct" style="font-size:22px;font-weight:900;color:#8BC34A;">-</div>
-        </div>
-      </div>
-      <div id="c-suggestion" style="margin-top:10px;font-size:12px;color:#aaa;text-align:center;"></div>
-    </div>
-  </div>
-</div>
     <div class="price-input-wrap">
       <label>Your Quoted Price (Rs) — Set your margin</label>
-      <input type="number" id="quoted-price" placeholder="325000" value="325000" oninput="updateNetCost();calcProfit()">
+      <input type="number" id="quoted-price" placeholder="325000" value="325000" oninput="updateNetCost()">
     </div>
 
     <div class="row2">
@@ -436,66 +367,10 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
       </div>
     </div>
 
-   <div class="divider"></div>
-<div class="step-label" style="margin-bottom:8px;">Site Assessment</div>
+    <div class="divider"></div>
 
-<div class="row2">
-  <div class="ig">
-    <label>City / District</label>
-    <input type="text" id="site-city" placeholder="Raipur, CG">
-  </div>
-  <div class="ig">
-    <label>DISCOM Name</label>
-    <input type="text" id="site-discom" placeholder="CSPDCL">
-  </div>
-</div>
-
-<div class="row2">
-  <div class="ig">
-    <label>Monthly Units Consumed (kWh)</label>
-    <input type="number" id="site-units" placeholder="300">
-  </div>
-  <div class="ig">
-    <label>Sanctioned Load (kW)</label>
-    <input type="number" id="site-load" placeholder="5">
-  </div>
-</div>
-
-<div class="row2">
-  <div class="ig">
-    <label>Cable Routing Distance (meters)</label>
-    <input type="number" id="site-cable" placeholder="15">
-  </div>
-  <div class="ig">
-    <label>Rooftop Access</label>
-    <select id="site-access">
-      <option value="easy">Easy Staircase</option>
-      <option value="narrow">Narrow Staircase</option>
-      <option value="none">No Staircase</option>
-    </select>
-  </div>
-</div>
-
-<div class="row2">
-  <div class="ig">
-    <label>Mounting Structure Type</label>
-    <select id="site-mounting">
-      <option value="ballast">Ballast (No drilling)</option>
-      <option value="anchored_rcc">Anchored RCC</option>
-      <option value="elevated_low">Elevated Low (2-3ft)</option>
-      <option value="elevated_high">Elevated High (4-6ft)</option>
-      <option value="tin_shed">Tin Shed Fixing</option>
-    </select>
-  </div>
-  <div class="ig">
-    <label>Shading Obstructions</label>
-    <select id="site-shading">
-      <option value="none">None</option>
-      <option value="partial">Partial (tank/mumty)</option>
-      <option value="heavy">Heavy (trees/building)</option>
-    </select>
-  </div>
-</div>
+    <div class="ig">
+      <label>Customer Name</label>
       <input type="text" id="cname" placeholder="Mr. Sharma">
     </div>
 
@@ -1124,14 +999,6 @@ async function generate() {
     fd.append('customer_phone',   cphone);
     fd.append('customer_address', caddr);
     fd.append('leg_heights_ft',   JSON.stringify(legHeights));
-    fd.append('site_city',     document.getElementById('site-city').value || '');
-fd.append('site_discom',   document.getElementById('site-discom').value || '');
-fd.append('site_units',    document.getElementById('site-units').value || '0');
-fd.append('site_load',     document.getElementById('site-load').value || '5');
-fd.append('site_cable',    document.getElementById('site-cable').value || '15');
-fd.append('site_access',   document.getElementById('site-access').value || 'easy');
-fd.append('site_mounting', document.getElementById('site-mounting').value || 'ballast');
-fd.append('site_shading',  document.getElementById('site-shading').value || 'none');
 
     try {
      var res = await fetch('/api/generate-quote', {
@@ -1194,63 +1061,7 @@ function resetQuote() {
   document.getElementById('photo-input').value = '';
   go(1);
 }
-// ── COST CALCULATOR ───────────────────────────────────────────────────────────
-function toggleCalc() {
-  var body = document.getElementById('calc-body');
-  var arrow = document.getElementById('calc-arrow');
-  if (body.style.display === 'none') {
-    body.style.display = 'block';
-    arrow.textContent = '▼';
-  } else {
-    body.style.display = 'none';
-    arrow.textContent = '▶';
-  }
-}
 
-function calcProfit() {
-  var kw      = parseFloat(document.getElementById('kw').value) || 5;
-  var watt    = parseInt(document.getElementById('panel-watt').value) || 550;
-  var panels  = Math.ceil((kw * 1000) / watt);
-
-  var panelRate  = parseFloat(document.getElementById('c-panel-rate').value) || 0;
-  var inverter   = parseFloat(document.getElementById('c-inverter').value) || 0;
-  var structure  = parseFloat(document.getElementById('c-structure').value) || 0;
-  var cableCost  = parseFloat(document.getElementById('c-cable-cost').value) || 0;
-  var labour     = parseFloat(document.getElementById('c-labour').value) || 0;
-  var other      = parseFloat(document.getElementById('c-other').value) || 0;
-
-  if (!panelRate && !inverter && !structure) return;
-
-  var panelTotal  = panelRate * kw * 1000;
-  var totalCost   = panelTotal + inverter + structure + cableCost + labour + other;
-  var quotedPrice = parseInt(document.getElementById('quoted-price').value) || 0;
-  var subsidy     = parseInt(document.getElementById('subsidy-amount').value) || 0;
-  var netQuoted   = quotedPrice - subsidy;
-  var profit      = netQuoted - totalCost;
-  var marginPct   = totalCost > 0 ? Math.round((profit / netQuoted) * 100) : 0;
-
-  document.getElementById('calc-result').style.display = 'block';
-  document.getElementById('c-panel-total').textContent = 'Rs ' + Math.round(panelTotal).toLocaleString('en-IN');
-  document.getElementById('c-total-cost').textContent  = 'Rs ' + Math.round(totalCost).toLocaleString('en-IN');
-  document.getElementById('c-profit').textContent      = 'Rs ' + Math.round(profit).toLocaleString('en-IN');
-  document.getElementById('c-margin-pct').textContent  = marginPct + '%';
-
-  var suggestion = '';
-  if (marginPct < 10) {
-    suggestion = '⚠️ Margin too low. Increase quoted price.';
-    document.getElementById('c-profit').style.color = '#ff6b6b';
-    document.getElementById('c-margin-pct').style.color = '#ff6b6b';
-  } else if (marginPct < 20) {
-    suggestion = 'Acceptable margin. You can quote higher.';
-    document.getElementById('c-profit').style.color = '#F9A825';
-    document.getElementById('c-margin-pct').style.color = '#F9A825';
-  } else {
-    suggestion = '✅ Good margin. Competitive price.';
-    document.getElementById('c-profit').style.color = '#8BC34A';
-    document.getElementById('c-margin-pct').style.color = '#8BC34A';
-  }
-  document.getElementById('c-suggestion').textContent = suggestion;
-}
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildProjectSlots();
 updateNetCost();
