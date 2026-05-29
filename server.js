@@ -433,7 +433,10 @@ const siteShading  = req.body.site_shading  || 'none';
       'image'
     );
 
-    const fin = calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount);
+   const fin = calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount, {
+  siteCity, siteDiscom, siteUnits, siteLoad,
+  siteCable, siteAccess, siteMounting, siteShading
+});
 
     console.log(`Job ${jobId}: Generating PDF...`);
 
