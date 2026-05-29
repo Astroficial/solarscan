@@ -1045,8 +1045,8 @@ async function generate() {
   var kw      = parseFloat(document.getElementById('kw').value)           || 5;
   var watt    = parseInt(document.getElementById('panel-watt').value)     || 550;
   var bill    = parseInt(document.getElementById('bill').value)           || 3000;
-  var price   = parseInt(document.getElementById('quoted-price').value)   || 325000;
-  var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 78000;
+ var price   = parseInt(document.getElementById('quoted-price').value)   || 0;
+var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 0;
   var cname   = document.getElementById('cname').value    || 'Homeowner';
   var cphone  = document.getElementById('cphone').value   || '';
   var caddr   = document.getElementById('caddress').value || '';
