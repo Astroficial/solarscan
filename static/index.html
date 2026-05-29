@@ -367,10 +367,66 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
       </div>
     </div>
 
-    <div class="divider"></div>
+   <div class="divider"></div>
+<div class="step-label" style="margin-bottom:8px;">Site Assessment</div>
 
-    <div class="ig">
-      <label>Customer Name</label>
+<div class="row2">
+  <div class="ig">
+    <label>City / District</label>
+    <input type="text" id="site-city" placeholder="Raipur, CG">
+  </div>
+  <div class="ig">
+    <label>DISCOM Name</label>
+    <input type="text" id="site-discom" placeholder="CSPDCL">
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Monthly Units Consumed (kWh)</label>
+    <input type="number" id="site-units" placeholder="300">
+  </div>
+  <div class="ig">
+    <label>Sanctioned Load (kW)</label>
+    <input type="number" id="site-load" placeholder="5">
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Cable Routing Distance (meters)</label>
+    <input type="number" id="site-cable" placeholder="15">
+  </div>
+  <div class="ig">
+    <label>Rooftop Access</label>
+    <select id="site-access">
+      <option value="easy">Easy Staircase</option>
+      <option value="narrow">Narrow Staircase</option>
+      <option value="none">No Staircase</option>
+    </select>
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Mounting Structure Type</label>
+    <select id="site-mounting">
+      <option value="ballast">Ballast (No drilling)</option>
+      <option value="anchored_rcc">Anchored RCC</option>
+      <option value="elevated_low">Elevated Low (2-3ft)</option>
+      <option value="elevated_high">Elevated High (4-6ft)</option>
+      <option value="tin_shed">Tin Shed Fixing</option>
+    </select>
+  </div>
+  <div class="ig">
+    <label>Shading Obstructions</label>
+    <select id="site-shading">
+      <option value="none">None</option>
+      <option value="partial">Partial (tank/mumty)</option>
+      <option value="heavy">Heavy (trees/building)</option>
+    </select>
+  </div>
+</div>
       <input type="text" id="cname" placeholder="Mr. Sharma">
     </div>
 
