@@ -105,7 +105,37 @@ function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
   );
 }
 
-function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
+function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount, site = {}) {
+  const netCost = quotedPrice - subsidyAmount;
+  const yearlyKwh = systemKw * 1500 * (site.siteShading === 'heavy' ? 0.85 : site.siteShading === 'partial' ? 0.93 : 1.0);
+  const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
+  const annualSaving = Math.round(yearlyKwh * unitRate);
+  const payback = (netCost / Math.max(annualSaving, 1)).toFixed(1);
+  const saving25yr = Math.round((annualSaving * 25) - netCost);
+  const monthlyAfter = Math.max(0, Math.round(monthlyBill - annualSaving / 12));
+  const savePct = monthlyBill > 0 ? Math.round(((monthlyBill - monthlyAfter) / monthlyBill) * 100) : 0;
+  const co2 = ((yearlyKwh * 0.82) / 1000).toFixed(1);
+  const trees = Math.round(yearlyKwh * 0.82 / 1000 * 24);
+
+  // Extra costs based on site assessment
+  const cableExtra  = Math.max(0, ((site.siteCable || 15) - 15)) * 150;
+  const accessExtra = site.siteAccess === 'none' ? 5000 : site.siteAccess === 'narrow' ? 2000 : 0;
+  const mountExtra  = site.siteMounting === 'elevated_high' ? 8000 : site.siteMounting === 'elevated_low' ? 4000 : 0;
+  const totalExtra  = cableExtra + accessExtra + mountExtra;
+
+  return {
+    systemKw, quotedPrice, subsidyAmount, netCost,
+    yearlyKwh: Math.round(yearlyKwh), annualSaving, payback, saving25yr,
+    monthlyBefore: monthlyBill, monthlyAfter, savePct, co2, trees,
+    advance:  Math.round(netCost * 0.20),
+    material: Math.round(netCost * 0.70),
+    final:    Math.round(netCost * 0.10),
+    siteCity:     site.siteCity     || '',
+    siteDiscom:   site.siteDiscom   || '',
+    siteMounting: site.siteMounting || '',
+    extraCosts:   totalExtra,
+  };
+}
   const netCost = quotedPrice - subsidyAmount;
   const yearlyKwh = systemKw * 1500;
   const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
