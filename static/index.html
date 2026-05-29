@@ -1134,7 +1134,14 @@ function showResult(data) {
 }
 
 function downloadPDF() {
-  if (S.result.pdf_url) window.open(S.result.pdf_url, '_blank');
+  console.log('Current result:', S.result);
+
+  if (!S.result || !S.result.pdf_url) {
+    alert('PDF link not found. Please generate the quote again first.');
+    return;
+  }
+
+  window.open(S.result.pdf_url, '_blank');
 }
 
 function shareWA() {
