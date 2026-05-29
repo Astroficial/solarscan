@@ -1084,14 +1084,27 @@ async function generate() {
     fd.append('quoted_price',     price);
     fd.append('subsidy_amount',   subsidy);
     fd.append('monthly_bill',     bill);
-    fd.append('roof_type',        roof);
-    fd.append('panel_brand',      pbrand);
-    fd.append('inverter_brand',   ibrand);
-    fd.append('customer_name',    cname);
-    fd.append('customer_phone',   cphone);
-    fd.append('customer_address', caddr);
-    fd.append('leg_heights_ft',   JSON.stringify(legHeights));
+   fd.append('roof_type',        roof);
+fd.append('panel_brand',      pbrand);
+fd.append('inverter_brand',   ibrand);
 
+fd.append('customer_name',    cname);
+fd.append('customer_phone',   cphone);
+fd.append('customer_address', caddr);
+
+// New site-pricing homework fields
+fd.append('customer_type',    customerType);
+fd.append('city_discom',      cityDiscom);
+fd.append('monthly_units',    monthlyUnits);
+fd.append('sanctioned_load',  sanctionedLoad);
+fd.append('cable_distance',   cableDistance);
+fd.append('phase_type',       phaseType);
+fd.append('mounting_type',    mountingType);
+fd.append('structure_height', structureHeight);
+fd.append('shading',          shading);
+fd.append('rooftop_access',   rooftopAccess);
+
+fd.append('leg_heights_ft',   JSON.stringify(legHeights));
     try {
      var res = await fetch('/api/generate-quote', {
   method: 'POST',
