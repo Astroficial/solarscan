@@ -1036,6 +1036,8 @@ async function generatePDF({
         ['Inverter Model', `${safeText(inverterBrand, 'Solis')} ${fin.systemKw}kW String Inverter (Wi-Fi Enabled)`],
         ['Mounting Structure', 'Hot-Dip Galvanized (HDG) MS, 25 deg Optimal Tilt'],
         ['Estimated Annual Gen.', `${fin.yearlyKwh.toLocaleString('en-IN')} kWh (Units) per year`],
+...(fin.siteCity ? [['Location / DISCOM', `${fin.siteCity}${fin.siteDiscom ? ' / ' + fin.siteDiscom : ''}`]] : []),
+...(fin.siteMounting ? [['Mounting Type', fin.siteMounting.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase())]] : []),
       ].map((row, index) => `
         <div style="display:flex;border-bottom:1px solid #C8E6C9;background:${index % 2 === 0 ? '#F1F8E9' : 'white'};">
           <div style="padding:12px 20px;width:40%;font-size:12px;font-weight:700;color:#4A6741;">${row[0]}</div>
