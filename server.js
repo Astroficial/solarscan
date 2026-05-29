@@ -293,7 +293,7 @@ function calcFinancials(
     final: Math.round(netCost * 0.10),
   };
 }
-  const netCost = quotedPrice - subsidyAmount;
+   const netCost = quotedPrice - subsidyAmount;
   const yearlyKwh = systemKw * 1500;
   const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
   const annualSaving = Math.round(yearlyKwh * unitRate);
@@ -325,76 +325,6 @@ function calcFinancials(
     final: Math.round(netCost * 0.10),
   };
 }
-
-// ---------------------------- CLOUDINARY UPLOAD -------------------------------
-
-async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
-  const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
-
-  const isProfile = publicId.includes('profile');
-
-  const fileName = resourceType === 'raw'
-    ? (isProfile ? `${publicId}.json` : `${publicId}.pdf`)
-    : `${publicId}.jpg`;
-
-  const fileType = resourceType === 'raw'
-    ? (isProfile ? 'application/json' : 'application/pdf')
-    : 'image/jpeg';
-
-  const formData = new FormData();
-  formData.append('file', new Blob([buffer], { type: fileType }), fileName);
-  formData.append('folder', folder);
-  formData.append('public_id', publicId);
-  formData.append('overwrite', 'true');
-
-  const authHeader = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
-
-  const response = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${authHeader}`,
-    },
-    body: formData,
-  });
-
-  const responseText = await response.text();
-
-  let data;
-  try {
-    data = JSON.parse(responseText);
-  } catch {
-    throw new Error(`Cloudinary non-JSON response: ${responseText.slice(0, 200)}`);
-  }
-
-  if (!response.ok || data.error) {
-    throw new Error('Cloudinary: ' + (data.error?.message || responseText));
-  }
-
-  if (!data.secure_url) {
-    throw new Error('Cloudinary: secure_url missing');
-  }
-
-  console.log(`Cloudinary upload OK: ${data.public_id}`);
-  return data.secure_url;
-}
-
-// ---------------------------- SAVE PROFILE ------------------------------------
-
-app.post('/api/save-profile', upload.fields([
-  { name: 'logo', maxCount: 1 },
-  { name: 'project0', maxCount: 1 },
-  { name: 'project1', maxCount: 1 },
-  { name: 'project2', maxCount: 1 },
-  { name: 'project3', maxCount: 1 },
-  { name: 'project4', maxCount: 1 },
-  { name: 'project5', maxCount: 1 },
-]), async (req, res) => {
-  try {
-    const installerId = req.body.installer_id || 'default';
-    const profile = JSON.parse(req.body.profile_json || '{}');
-
-    if (req.files?.logo?.[0]) {
-      profile.logo_url = await uploadToCloudinary(
         req.files.logo[0].buffer,
         `solarscan/${installerId}`,
         'logo',
