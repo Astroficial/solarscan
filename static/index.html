@@ -343,6 +343,99 @@ body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-heig
     </select>
   </div>
 </div>
+    <div class="divider"></div>
+
+<div class="section-title">Site Assessment / Pricing Homework</div>
+<div class="hint">
+  These fields are used to calculate a more realistic profitable quotation based on actual site conditions.
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Customer Type</label>
+    <select id="customer-type">
+      <option value="residential" selected>Residential</option>
+      <option value="commercial">Commercial</option>
+      <option value="industrial">Industrial</option>
+    </select>
+  </div>
+  <div class="ig">
+    <label>City / DISCOM</label>
+    <select id="city-discom">
+      <option value="cspdcl">CSPDCL / Chhattisgarh</option>
+      <option value="mppkvvcl">MPPKVVCL / Madhya Pradesh</option>
+      <option value="uppcl">UPPCL / Uttar Pradesh</option>
+      <option value="bescom">BESCOM / Karnataka</option>
+      <option value="other">Other DISCOM</option>
+    </select>
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Monthly Units Consumed</label>
+    <input type="number" id="monthly-units" placeholder="450">
+  </div>
+  <div class="ig">
+    <label>Sanctioned Load kW</label>
+    <input type="number" id="sanctioned-load" placeholder="5" step="0.5">
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Cable Routing Distance Meter</label>
+    <input type="number" id="cable-distance" placeholder="30" value="30">
+  </div>
+  <div class="ig">
+    <label>Phase Type</label>
+    <select id="phase-type">
+      <option value="single">Single Phase</option>
+      <option value="three" selected>Three Phase</option>
+    </select>
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Mounting Structure Type</label>
+    <select id="mounting-type">
+      <option value="normal" selected>Normal Structure</option>
+      <option value="elevated">Elevated Structure</option>
+      <option value="shed">Shed / Tin Roof Structure</option>
+      <option value="custom">Custom Structure</option>
+    </select>
+  </div>
+  <div class="ig">
+    <label>Structure Height Feet</label>
+    <select id="structure-height">
+      <option value="3" selected>3 ft</option>
+      <option value="5">5 ft</option>
+      <option value="7">7 ft</option>
+      <option value="10">10 ft</option>
+    </select>
+  </div>
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Shading Obstruction</label>
+    <select id="shading">
+      <option value="none" selected>No Shading</option>
+      <option value="low">Low Shading</option>
+      <option value="medium">Medium Shading</option>
+      <option value="high">High Shading</option>
+    </select>
+  </div>
+  <div class="ig">
+    <label>Rooftop Access</label>
+    <select id="rooftop-access">
+      <option value="easy" selected>Easy Access</option>
+      <option value="medium">Medium Difficulty</option>
+      <option value="difficult">Difficult Access</option>
+    </select>
+  </div>
+</div>
     <div class="row2">
       <div class="ig">
         <label>Panel Brand</label>
