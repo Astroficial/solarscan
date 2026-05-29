@@ -627,7 +627,15 @@ const site = {
       'image'
     );
 
-    const fin = calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount);
+const fin = calcFinancials(
+  systemKw,
+  monthlyBill,
+  quotedPrice,
+  subsidyAmount,
+  site,
+  panelBrand,
+  inverterBrand
+);
 
     console.log(`Job ${jobId}: Generating PDF...`);
 
