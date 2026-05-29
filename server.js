@@ -317,6 +317,14 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
     const panelBrand = req.body.panel_brand || 'Waaree Solar';
     const inverterBrand = req.body.inverter_brand || 'Solis';
     const installerId = req.body.installer_id || 'default';
+    const siteCity     = req.body.site_city     || '';
+const siteDiscom   = req.body.site_discom   || '';
+const siteUnits    = parseInt(req.body.site_units   || 0);
+const siteLoad     = parseFloat(req.body.site_load  || 5);
+const siteCable    = parseInt(req.body.site_cable   || 15);
+const siteAccess   = req.body.site_access   || 'easy';
+const siteMounting = req.body.site_mounting || 'ballast';
+const siteShading  = req.body.site_shading  || 'none';
 
     let legHeights = [3];
 
