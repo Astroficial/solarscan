@@ -1165,28 +1165,4 @@ function resetQuote() {
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildProjectSlots();
 updateNetCost();
-var kw      = parseFloat(document.getElementById('kw').value)           || 5;
-var watt    = parseInt(document.getElementById('panel-watt').value)     || 550;
-var bill    = parseInt(document.getElementById('bill').value)           || 3000;
-var price   = parseInt(document.getElementById('quoted-price').value)   || 0;
-var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 0;
 
-var cname   = document.getElementById('cname').value    || 'Homeowner';
-var cphone  = document.getElementById('cphone').value   || '';
-var caddr   = document.getElementById('caddress').value || '';
-
-var pbrand  = document.getElementById('panel-brand').value;
-var ibrand  = document.getElementById('inverter-brand').value;
-var roof    = document.getElementById('roof').value;
-
-// New site-pricing homework fields
-var customerType    = document.getElementById('customer-type').value;
-var cityDiscom      = document.getElementById('city-discom').value;
-var monthlyUnits    = parseInt(document.getElementById('monthly-units').value) || 0;
-var sanctionedLoad  = parseFloat(document.getElementById('sanctioned-load').value) || 0;
-var cableDistance   = parseFloat(document.getElementById('cable-distance').value) || 30;
-var phaseType       = document.getElementById('phase-type').value;
-var mountingType    = document.getElementById('mounting-type').value;
-var structureHeight = parseFloat(document.getElementById('structure-height').value) || 3;
-var shading         = document.getElementById('shading').value;
-var rooftopAccess   = document.getElementById('rooftop-access').value;
