@@ -105,7 +105,194 @@ function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
   );
 }
 
-function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
+function estimateSubsidy(systemKw, customerType) {
+  if (customerType !== 'residential') return 0;
+
+  if (systemKw >= 3) return 78000;
+  if (systemKw >= 2) return 60000;
+  if (systemKw >= 1) return 30000;
+
+  return 0;
+}
+
+function calculateSiteCost(systemKw, panelBrand, inverterBrand, site) {
+  const panelRateByBrand = {
+    'Waaree Solar': 22,
+    'Adani Solar': 23,
+    'Vikram Solar': 22,
+    'Tata Power Solar': 24,
+    'Renewsys Solar': 21,
+  };
+
+  const inverterBaseByBrand = {
+    Solis: 35000,
+    Growatt: 32000,
+    Havells: 38000,
+    SolarEdge: 65000,
+    Fronius: 70000,
+  };
+
+  const panelRate = panelRateByBrand[panelBrand] || 22;
+  const inverterBase = inverterBaseByBrand[inverterBrand] || 35000;
+
+  const cableDistance = Number(site.cableDistance || 30);
+  const structureHeight = Number(site.structureHeight || 3);
+
+  const mountingType = site.mountingType || 'normal';
+  const rooftopAccess = site.rooftopAccess || 'easy';
+
+  const structureRateByType = {
+    normal: 8000,
+    elevated: 14000,
+    shed: 6500,
+    custom: 16000,
+  };
+
+  const accessMultiplier = {
+    easy: 1,
+    medium: 1.15,
+    difficult: 1.35,
+  };
+
+  const structureRate = structureRateByType[mountingType] || 8000;
+  const labourMultiplier = accessMultiplier[rooftopAccess] || 1;
+
+  const heightExtra = Math.max(0, structureHeight - 3) * systemKw * 1500;
+
+  const panelCost = Math.round(systemKw * 1000 * panelRate);
+  const inverterCost = Math.round(inverterBase + Math.max(0, systemKw - 5) * 5000);
+  const structureCost = Math.round(systemKw * structureRate + heightExtra);
+  const cableCost = Math.round(cableDistance * 120);
+  const labourCost = Math.round(systemKw * 5000 * labourMultiplier);
+
+  const acDcBoxCost = 9000;
+  const earthingLaCost = 9000;
+  const netMeteringCost = site.phaseType === 'three' ? 10000 : 7000;
+  const transportCost = 5000;
+  const miscCost = 8000;
+
+  const baseCost =
+    panelCost +
+    inverterCost +
+    structureCost +
+    cableCost +
+    labourCost +
+    acDcBoxCost +
+    earthingLaCost +
+    netMeteringCost +
+    transportCost +
+    miscCost;
+
+  const gstRate = 0.12;
+  const gstAmount = Math.round(baseCost * gstRate);
+
+  const installerCost = baseCost + gstAmount;
+
+  const marginRate = 0.25;
+  const suggestedQuote = Math.ceil((installerCost * (1 + marginRate)) / 1000) * 1000;
+
+  return {
+    panelCost,
+    inverterCost,
+    structureCost,
+    cableCost,
+    labourCost,
+    acDcBoxCost,
+    earthingLaCost,
+    netMeteringCost,
+    transportCost,
+    miscCost,
+    gstAmount,
+    installerCost,
+    suggestedQuote,
+  };
+}
+
+function calcFinancials(
+  systemKw,
+  monthlyBill,
+  quotedPriceInput,
+  subsidyAmountInput,
+  site = {},
+  panelBrand = 'Waaree Solar',
+  inverterBrand = 'Solis'
+) {
+  const siteCost = calculateSiteCost(systemKw, panelBrand, inverterBrand, site);
+
+  const quotedPrice = Number(quotedPriceInput || 0) > 0
+    ? Number(quotedPriceInput)
+    : siteCost.suggestedQuote;
+
+  const subsidyAmount = Number(subsidyAmountInput || 0) > 0
+    ? Number(subsidyAmountInput)
+    : estimateSubsidy(systemKw, site.customerType || 'residential');
+
+  const netCost = Math.max(0, quotedPrice - subsidyAmount);
+
+  const shadingLossByType = {
+    none: 0,
+    low: 0.05,
+    medium: 0.12,
+    high: 0.22,
+  };
+
+  const shadingLoss = shadingLossByType[site.shading || 'none'] || 0;
+
+  const yearlyKwh = Math.round(systemKw * 1500 * (1 - shadingLoss));
+
+  const monthlyUnits = Number(site.monthlyUnits || 0);
+
+  const unitRate = monthlyUnits > 0
+    ? Math.max(5, Math.min(monthlyBill / monthlyUnits, 15))
+    : Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
+
+  const annualSaving = Math.round(yearlyKwh * unitRate);
+  const payback = (netCost / Math.max(annualSaving, 1)).toFixed(1);
+  const saving25yr = Math.round((annualSaving * 25) - netCost);
+
+  const monthlyAfter = Math.max(0, Math.round(monthlyBill - annualSaving / 12));
+
+  const savePct = monthlyBill > 0
+    ? Math.round(((monthlyBill - monthlyAfter) / monthlyBill) * 100)
+    : 0;
+
+  const co2 = ((yearlyKwh * 0.82) / 1000).toFixed(1);
+  const trees = Math.round(yearlyKwh * 0.82 / 1000 * 24);
+
+  const estimatedMargin = quotedPrice - siteCost.installerCost;
+  const estimatedMarginPct = quotedPrice > 0
+    ? Math.round((estimatedMargin / quotedPrice) * 100)
+    : 0;
+
+  return {
+    systemKw,
+    quotedPrice,
+    suggestedQuote: siteCost.suggestedQuote,
+    subsidyAmount,
+    netCost,
+
+    installerCost: siteCost.installerCost,
+    estimatedMargin,
+    estimatedMarginPct,
+    costBreakup: siteCost,
+
+    yearlyKwh,
+    annualSaving,
+    payback,
+    saving25yr,
+    monthlyBefore: monthlyBill,
+    monthlyAfter,
+    savePct,
+    co2,
+    trees,
+
+    site,
+
+    advance: Math.round(netCost * 0.20),
+    material: Math.round(netCost * 0.70),
+    final: Math.round(netCost * 0.10),
+  };
+}
   const netCost = quotedPrice - subsidyAmount;
   const yearlyKwh = systemKw * 1500;
   const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
