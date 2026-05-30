@@ -17,7 +17,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'static')));
 
 const CLOUDINARY_CLOUD_NAME = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
@@ -26,10 +25,6 @@ const CLOUDINARY_API_SECRET = (process.env.CLOUDINARY_API_SECRET || '').trim();
 
 if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
   throw new Error('Cloudinary variables missing. Check Railway variables.');
-}
-
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('OPENAI_API_KEY missing. Check Railway variables.');
 }
 
 console.log('Cloudinary cloud_name:', CLOUDINARY_CLOUD_NAME);
@@ -41,7 +36,13 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const TMP = '/tmp/solarscan';
 fs.mkdirSync(TMP, { recursive: true });
 
-// ---------------------------- BASIC HELPERS ----------------------------------
+// ---------------------------- HELPERS ----------------------------------------
+
+function getPanelLayout(count) {
+  if (count <= 12) return { rows: 2, cols: Math.ceil(count / 2) };
+  if (count <= 21) return { rows: 3, cols: Math.ceil(count / 3) };
+  return { rows: 4, cols: Math.ceil(count / 4) };
+}
 
 function safeText(value, fallback = '') {
   if (value === null || value === undefined) return fallback;
@@ -59,446 +60,29 @@ function safeText(value, fallback = '') {
 
 function money(value) {
   const n = Number(value || 0);
-  return `₹${n.toLocaleString('en-IN')}`;
+  return `&#8377;${n.toLocaleString('en-IN')}`;
 }
-
-function toNumber(value, fallback = 0) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function getPanelLayout(count) {
-  if (count <= 12) return { rows: 2, cols: Math.ceil(count / 2) };
-  if (count <= 21) return { rows: 3, cols: Math.ceil(count / 3) };
-  return { rows: 4, cols: Math.ceil(count / 4) };
-}
-
-function parseJsonSafe(value, fallback = {}) {
-  try {
-    if (!value) return fallback;
-    if (typeof value === 'object') return value;
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
-
-// ---------------------------- RATE MASTER ------------------------------------
-
-function defaultRateMaster() {
-  return {
-    panel_rates: {
-      'Waaree Solar': 22,
-      'Adani Solar': 23,
-      'Vikram Solar': 22,
-      'Tata Power Solar': 24,
-      'Renewsys Solar': 21,
-    },
-
-    inverter_base_costs: {
-      Solis: 35000,
-      Growatt: 32000,
-      Havells: 38000,
-      SolarEdge: 65000,
-      Fronius: 70000,
-    },
-
-    structure_rates: {
-      normal: 8000,
-      elevated: 14000,
-      shed: 6500,
-      custom: 16000,
-    },
-
-    labour_access_multiplier: {
-      easy: 1,
-      medium: 1.15,
-      difficult: 1.35,
-    },
-
-    default_panel_rate: 22,
-    default_inverter_base_cost: 35000,
-    default_structure_rate: 8000,
-
-    height_extra_per_ft_per_kw: 1500,
-    extra_inverter_cost_per_kw_above_5kw: 5000,
-
-    cable_rate_per_meter: 120,
-    labour_rate_per_kw: 5000,
-
-    ac_dc_box_cost: 9000,
-    earthing_la_cost: 9000,
-
-    net_meter_single_phase_cost: 7000,
-    net_meter_three_phase_cost: 10000,
-
-    transport_cost: 5000,
-    misc_cost: 8000,
-
-    gst_rate_percent: 12,
-    margin_percent: 25,
-  };
-}
-
-function mergeRateMaster(rateMaster = {}) {
-  const defaults = defaultRateMaster();
-
-  const merged = {
-    ...defaults,
-    ...(rateMaster || {}),
-
-    panel_rates: {
-      ...defaults.panel_rates,
-      ...((rateMaster || {}).panel_rates || {}),
-    },
-
-    inverter_base_costs: {
-      ...defaults.inverter_base_costs,
-      ...((rateMaster || {}).inverter_base_costs || {}),
-    },
-
-    structure_rates: {
-      ...defaults.structure_rates,
-      ...((rateMaster || {}).structure_rates || {}),
-    },
-
-    labour_access_multiplier: {
-      ...defaults.labour_access_multiplier,
-      ...((rateMaster || {}).labour_access_multiplier || {}),
-    },
-  };
-
-  Object.keys(merged.panel_rates).forEach(key => {
-    merged.panel_rates[key] = toNumber(
-      merged.panel_rates[key],
-      defaults.panel_rates[key] || defaults.default_panel_rate
-    );
-  });
-
-  Object.keys(merged.inverter_base_costs).forEach(key => {
-    merged.inverter_base_costs[key] = toNumber(
-      merged.inverter_base_costs[key],
-      defaults.inverter_base_costs[key] || defaults.default_inverter_base_cost
-    );
-  });
-
-  Object.keys(merged.structure_rates).forEach(key => {
-    merged.structure_rates[key] = toNumber(
-      merged.structure_rates[key],
-      defaults.structure_rates[key] || defaults.default_structure_rate
-    );
-  });
-
-  Object.keys(merged.labour_access_multiplier).forEach(key => {
-    merged.labour_access_multiplier[key] = toNumber(
-      merged.labour_access_multiplier[key],
-      defaults.labour_access_multiplier[key] || 1
-    );
-  });
-
-  [
-    'default_panel_rate',
-    'default_inverter_base_cost',
-    'default_structure_rate',
-    'height_extra_per_ft_per_kw',
-    'extra_inverter_cost_per_kw_above_5kw',
-    'cable_rate_per_meter',
-    'labour_rate_per_kw',
-    'ac_dc_box_cost',
-    'earthing_la_cost',
-    'net_meter_single_phase_cost',
-    'net_meter_three_phase_cost',
-    'transport_cost',
-    'misc_cost',
-    'gst_rate_percent',
-    'margin_percent',
-  ].forEach(key => {
-    merged[key] = toNumber(merged[key], defaults[key]);
-  });
-
-  return merged;
-}
-
-// ---------------------------- INSTALLER PROFILE ------------------------------
 
 function defaultInstaller() {
   return {
     company_name: 'Solar Installer',
-    tagline: '',
     phone: '',
     email: '',
     website: '',
     address: '',
     gst: '',
-
     years: '5+',
     installations: '450+',
     total_kw: '2.1 MW',
     rating: '4.9/5',
-
     bank_name: '',
     account_no: '',
     ifsc: '',
     upi: '',
-
     logo_url: '',
     projects: [],
-
-    rate_master: defaultRateMaster(),
   };
 }
-
-function normalizeInstaller(profile = {}) {
-  return {
-    ...defaultInstaller(),
-    ...(profile || {}),
-    projects: Array.isArray(profile.projects) ? profile.projects : [],
-    rate_master: mergeRateMaster(profile.rate_master || {}),
-  };
-}
-
-// ---------------------------- PRICING ENGINE ---------------------------------
-
-function estimateSubsidy(systemKw, customerType) {
-  if (customerType !== 'residential') return 0;
-
-  if (systemKw >= 3) return 78000;
-  if (systemKw >= 2) return 60000;
-  if (systemKw >= 1) return 30000;
-
-  return 0;
-}
-
-function calculateSiteCost(systemKw, panelBrand, inverterBrand, site = {}, rateMaster = {}) {
-  const rates = mergeRateMaster(rateMaster);
-
-  const panelRate = toNumber(
-    rates.panel_rates[panelBrand],
-    rates.default_panel_rate
-  );
-
-  const inverterBase = toNumber(
-    rates.inverter_base_costs[inverterBrand],
-    rates.default_inverter_base_cost
-  );
-
-  const cableDistance = toNumber(site.cableDistance, 30);
-  const structureHeight = toNumber(site.structureHeight, 3);
-
-  const mountingType = site.mountingType || 'normal';
-  const rooftopAccess = site.rooftopAccess || 'easy';
-
-  const structureRate = toNumber(
-    rates.structure_rates[mountingType],
-    rates.default_structure_rate
-  );
-
-  const labourMultiplier = toNumber(
-    rates.labour_access_multiplier[rooftopAccess],
-    1
-  );
-
-  const heightExtra = Math.round(
-    Math.max(0, structureHeight - 3) *
-    systemKw *
-    rates.height_extra_per_ft_per_kw
-  );
-
-  const panelCost = Math.round(systemKw * 1000 * panelRate);
-
-  const inverterCost = Math.round(
-    inverterBase +
-    Math.max(0, systemKw - 5) * rates.extra_inverter_cost_per_kw_above_5kw
-  );
-
-  const structureCost = Math.round(systemKw * structureRate + heightExtra);
-
-  const cableCost = Math.round(cableDistance * rates.cable_rate_per_meter);
-
-  const labourCost = Math.round(
-    systemKw *
-    rates.labour_rate_per_kw *
-    labourMultiplier
-  );
-
-  const acDcBoxCost = Math.round(rates.ac_dc_box_cost);
-  const earthingLaCost = Math.round(rates.earthing_la_cost);
-
-  const netMeteringCost =
-    site.phaseType === 'three'
-      ? Math.round(rates.net_meter_three_phase_cost)
-      : Math.round(rates.net_meter_single_phase_cost);
-
-  const transportCost = Math.round(rates.transport_cost);
-  const miscCost = Math.round(rates.misc_cost);
-
-  const baseCost =
-    panelCost +
-    inverterCost +
-    structureCost +
-    cableCost +
-    labourCost +
-    acDcBoxCost +
-    earthingLaCost +
-    netMeteringCost +
-    transportCost +
-    miscCost;
-
-  const gstAmount = Math.round(baseCost * (rates.gst_rate_percent / 100));
-
-  const installerCost = baseCost + gstAmount;
-
-  const marginAmount = Math.round(installerCost * (rates.margin_percent / 100));
-
-  const suggestedQuote =
-    Math.ceil((installerCost + marginAmount) / 1000) * 1000;
-
-  return {
-    panelCost,
-    inverterCost,
-    structureCost,
-    heightExtra,
-    cableCost,
-    labourCost,
-    acDcBoxCost,
-    earthingLaCost,
-    netMeteringCost,
-    transportCost,
-    miscCost,
-    baseCost,
-    gstAmount,
-    installerCost,
-    marginAmount,
-    suggestedQuote,
-    ratesUsed: rates,
-  };
-}
-
-function calcFinancials(
-  systemKw,
-  monthlyBill,
-  quotedPriceInput,
-  subsidyAmountInput,
-  site = {},
-  panelBrand = 'Waaree Solar',
-  inverterBrand = 'Solis',
-  rateMaster = {}
-) {
-  const siteCost = calculateSiteCost(
-    systemKw,
-    panelBrand,
-    inverterBrand,
-    site,
-    rateMaster
-  );
-
-  const quotedPrice =
-    Number(quotedPriceInput || 0) > 0
-      ? Number(quotedPriceInput)
-      : siteCost.suggestedQuote;
-
-  const subsidyAmount =
-    Number(subsidyAmountInput || 0) > 0
-      ? Number(subsidyAmountInput)
-      : estimateSubsidy(systemKw, site.customerType || 'residential');
-
-  const netCost = Math.max(0, quotedPrice - subsidyAmount);
-
-  const shadingLossByType = {
-    none: 0,
-    low: 0.05,
-    medium: 0.12,
-    high: 0.22,
-  };
-
-  const shadingLoss = shadingLossByType[site.shading || 'none'] || 0;
-
-  const yearlyKwh = Math.round(systemKw * 1500 * (1 - shadingLoss));
-
-  const monthlyUnits = Number(site.monthlyUnits || 0);
-
-  const unitRate =
-    monthlyUnits > 0
-      ? Math.max(5, Math.min(monthlyBill / monthlyUnits, 15))
-      : Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
-
-  const annualSaving = Math.round(yearlyKwh * unitRate);
-
-  const payback = (netCost / Math.max(annualSaving, 1)).toFixed(1);
-
-  const saving25yr = Math.round(annualSaving * 25 - netCost);
-
-  const monthlyAfter = Math.max(
-    0,
-    Math.round(monthlyBill - annualSaving / 12)
-  );
-
-  const savePct =
-    monthlyBill > 0
-      ? Math.round(((monthlyBill - monthlyAfter) / monthlyBill) * 100)
-      : 0;
-
-  const co2 = ((yearlyKwh * 0.82) / 1000).toFixed(1);
-  const trees = Math.round((yearlyKwh * 0.82) / 1000 * 24);
-
-  const estimatedMargin = quotedPrice - siteCost.installerCost;
-
-  const estimatedMarginPct =
-    quotedPrice > 0
-      ? Math.round((estimatedMargin / quotedPrice) * 100)
-      : 0;
-
-  return {
-    systemKw,
-    quotedPrice,
-    suggestedQuote: siteCost.suggestedQuote,
-    subsidyAmount,
-    netCost,
-
-    installerCost: siteCost.installerCost,
-    estimatedMargin,
-    estimatedMarginPct,
-
-    costBreakup: siteCost,
-
-    yearlyKwh,
-    annualSaving,
-    payback,
-    saving25yr,
-
-    monthlyBefore: monthlyBill,
-    monthlyAfter,
-    savePct,
-
-    co2,
-    trees,
-
-    unitRate: Number(unitRate.toFixed(2)),
-    site,
-
-    advance: Math.round(netCost * 0.20),
-    material: Math.round(netCost * 0.70),
-    final: Math.round(netCost * 0.10),
-  };
-}
-
-function buildSiteFromBody(body = {}) {
-  return {
-    customerType: body.customer_type || 'residential',
-    cityDiscom: body.city_discom || 'other',
-    monthlyUnits: parseInt(body.monthly_units || 0),
-    sanctionedLoad: parseFloat(body.sanctioned_load || 0),
-    cableDistance: parseFloat(body.cable_distance || 30),
-    phaseType: body.phase_type || 'single',
-    mountingType: body.mounting_type || 'normal',
-    structureHeight: parseFloat(body.structure_height || 3),
-    shading: body.shading || 'none',
-    rooftopAccess: body.rooftop_access || 'easy',
-    roofType: body.roof_type || 'flat_rcc',
-  };
-}
-
-// ---------------------------- AI PROMPT --------------------------------------
 
 function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
   const layout = getPanelLayout(panelCount);
@@ -514,7 +98,6 @@ function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
     `Mount the panels on realistic elevated Indian rooftop GI/MS support structure with visible rails, braces, clamps, cross members, and RCC concrete pedestal blocks. ` +
     `If red support guide lines are visible, use them as guidance for extended support rods. Extend realistic GI/MS support rods from the solar panel frame down to the marked roof footing points. Place RCC concrete blocks at the base. ` +
     `The average support leg height required is approximately ${avgLeg} feet. This is a raised structure at 25-30 degree tilt angle. ` +
-    `The roof type is ${roofType}. ` +
     `The camera was pointing NORTH. Therefore all solar panels must face TRUE SOUTH, directly toward the camera. The full front glass surface of all panels must be visible. ` +
     `Preserve the original roof photo completely. Do not change roof geometry, parapet walls, vents, tanks, AC units, pipes, trees, towers, buildings, sky, or background. ` +
     `Add realistic shadows under panels, support rods, frames, and RCC blocks matching the original sunlight direction. ` +
@@ -522,37 +105,62 @@ function buildPrompt(systemKw, panelCount, legHeightsFt, roofType) {
   );
 }
 
-// ---------------------------- CLOUDINARY UPLOAD ------------------------------
+function calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount) {
+  const netCost = quotedPrice - subsidyAmount;
+  const yearlyKwh = systemKw * 1500;
+  const unitRate = Math.max(6, Math.min((monthlyBill * 12) / Math.max(yearlyKwh, 1), 12));
+  const annualSaving = Math.round(yearlyKwh * unitRate);
+  const payback = (netCost / Math.max(annualSaving, 1)).toFixed(1);
+  const saving25yr = Math.round((annualSaving * 25) - netCost);
+  const monthlyAfter = Math.max(0, Math.round(monthlyBill - annualSaving / 12));
+  const savePct = monthlyBill > 0
+    ? Math.round(((monthlyBill - monthlyAfter) / monthlyBill) * 100)
+    : 0;
+  const co2 = ((yearlyKwh * 0.82) / 1000).toFixed(1);
+  const trees = Math.round(yearlyKwh * 0.82 / 1000 * 24);
+
+  return {
+    systemKw,
+    quotedPrice,
+    subsidyAmount,
+    netCost,
+    yearlyKwh,
+    annualSaving,
+    payback,
+    saving25yr,
+    monthlyBefore: monthlyBill,
+    monthlyAfter,
+    savePct,
+    co2,
+    trees,
+    advance: Math.round(netCost * 0.20),
+    material: Math.round(netCost * 0.70),
+    final: Math.round(netCost * 0.10),
+  };
+}
+
+// ---------------------------- CLOUDINARY UPLOAD -------------------------------
 
 async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'image') {
   const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
 
   const isProfile = publicId.includes('profile');
 
-  const fileName =
-    resourceType === 'raw'
-      ? isProfile
-        ? `${publicId}.json`
-        : `${publicId}.pdf`
-      : `${publicId}.jpg`;
+  const fileName = resourceType === 'raw'
+    ? (isProfile ? `${publicId}.json` : `${publicId}.pdf`)
+    : `${publicId}.jpg`;
 
-  const fileType =
-    resourceType === 'raw'
-      ? isProfile
-        ? 'application/json'
-        : 'application/pdf'
-      : 'image/jpeg';
+  const fileType = resourceType === 'raw'
+    ? (isProfile ? 'application/json' : 'application/pdf')
+    : 'image/jpeg';
 
   const formData = new FormData();
-
   formData.append('file', new Blob([buffer], { type: fileType }), fileName);
   formData.append('folder', folder);
   formData.append('public_id', publicId);
   formData.append('overwrite', 'true');
 
-  const authHeader = Buffer.from(
-    `${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`
-  ).toString('base64');
+  const authHeader = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
 
   const response = await fetch(uploadUrl, {
     method: 'POST',
@@ -565,7 +173,6 @@ async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'imag
   const responseText = await response.text();
 
   let data;
-
   try {
     data = JSON.parse(responseText);
   } catch {
@@ -581,46 +188,10 @@ async function uploadToCloudinary(buffer, folder, publicId, resourceType = 'imag
   }
 
   console.log(`Cloudinary upload OK: ${data.public_id}`);
-
   return data.secure_url;
 }
 
-// ---------------------------- PROFILE LOAD HELPER ----------------------------
-
-async function loadInstallerProfile(installerId) {
-  const profilePath = path.join(TMP, `profile_${installerId}.json`);
-
-  if (fs.existsSync(profilePath)) {
-    const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
-    return normalizeInstaller(profile);
-  }
-
-  const urlsToTry = [
-    `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/solarscan/${installerId}/profile.json`,
-    `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/solarscan/${installerId}/profile`,
-  ];
-
-  for (const url of urlsToTry) {
-    try {
-      const response = await fetch(url);
-
-      if (response.ok) {
-        const profile = await response.json();
-        fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
-        console.log('Profile restored from Cloudinary');
-        return normalizeInstaller(profile);
-      }
-
-      console.log('Cloudinary profile fetch status:', response.status, url);
-    } catch (err) {
-      console.log('Cloudinary profile fetch error:', err.message);
-    }
-  }
-
-  return normalizeInstaller(defaultInstaller());
-}
-
-// ---------------------------- SAVE PROFILE -----------------------------------
+// ---------------------------- SAVE PROFILE ------------------------------------
 
 app.post('/api/save-profile', upload.fields([
   { name: 'logo', maxCount: 1 },
@@ -633,9 +204,7 @@ app.post('/api/save-profile', upload.fields([
 ]), async (req, res) => {
   try {
     const installerId = req.body.installer_id || 'default';
-
-    const profile = parseJsonSafe(req.body.profile_json, {});
-    profile.rate_master = mergeRateMaster(profile.rate_master || {});
+    const profile = JSON.parse(req.body.profile_json || '{}');
 
     if (req.files?.logo?.[0]) {
       profile.logo_url = await uploadToCloudinary(
@@ -646,7 +215,7 @@ app.post('/api/save-profile', upload.fields([
       );
     }
 
-    profile.projects = Array.isArray(profile.projects) ? profile.projects : [];
+    profile.projects = profile.projects || [];
 
     for (let i = 0; i < 6; i++) {
       const key = `project${i}`;
@@ -670,87 +239,62 @@ app.post('/api/save-profile', upload.fields([
       profile.projects[i] = meta;
     }
 
-    const finalProfile = normalizeInstaller(profile);
-
     const profilePath = path.join(TMP, `profile_${installerId}.json`);
-    fs.writeFileSync(profilePath, JSON.stringify(finalProfile, null, 2));
+    fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
 
+    const profileBuf = Buffer.from(JSON.stringify(profile, null, 2));
     await uploadToCloudinary(
-      Buffer.from(JSON.stringify(finalProfile, null, 2)),
+      profileBuf,
       `solarscan/${installerId}`,
       'profile',
       'raw'
     );
 
-    res.json({
-      success: true,
-      profile: finalProfile,
-    });
+    res.json({ success: true, profile });
   } catch (err) {
     console.error('Save profile error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ---------------------------- LOAD PROFILE -----------------------------------
+// ---------------------------- LOAD PROFILE ------------------------------------
 
 app.get('/api/load-profile', async (req, res) => {
   try {
     const installerId = req.query.installer_id || 'default';
-    const profile = await loadInstallerProfile(installerId);
+    const profilePath = path.join(TMP, `profile_${installerId}.json`);
 
-    res.json({
-      success: true,
-      profile,
-    });
+    if (fs.existsSync(profilePath)) {
+      const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+      return res.json({ success: true, profile });
+    }
+
+    console.log('Profile not in /tmp, fetching from Cloudinary...');
+
+    const url = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/solarscan/${installerId}/profile`;
+
+    try {
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const profile = await response.json();
+        fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+        console.log('Profile restored from Cloudinary');
+        return res.json({ success: true, profile });
+      }
+
+      console.log('Cloudinary profile fetch status:', response.status);
+    } catch (err) {
+      console.log('Cloudinary profile fetch error:', err.message);
+    }
+
+    res.json({ success: true, profile: null });
   } catch (err) {
-    console.error('Load profile error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ---------------------------- CALCULATE PRICE --------------------------------
-
-app.post('/api/calculate-price', async (req, res) => {
-  try {
-    const installerId = req.body.installer_id || 'default';
-
-    const installer = await loadInstallerProfile(installerId);
-
-    const systemKw = parseFloat(req.body.system_kw || 5);
-    const monthlyBill = parseInt(req.body.monthly_bill || 3000);
-
-    const quotedPrice = parseInt(req.body.quoted_price || 0);
-    const subsidyAmount = parseInt(req.body.subsidy_amount || 0);
-
-    const panelBrand = req.body.panel_brand || 'Waaree Solar';
-    const inverterBrand = req.body.inverter_brand || 'Solis';
-
-    const site = buildSiteFromBody(req.body);
-
-    const fin = calcFinancials(
-      systemKw,
-      monthlyBill,
-      quotedPrice,
-      subsidyAmount,
-      site,
-      panelBrand,
-      inverterBrand,
-      installer.rate_master
-    );
-
-    res.json({
-      success: true,
-      financials: fin,
-      rate_master: installer.rate_master,
-    });
-  } catch (err) {
-    console.error('Calculate price error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ---------------------------- GENERATE QUOTE ---------------------------------
+// ---------------------------- GENERATE QUOTE ----------------------------------
 
 app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
   const jobId = uuidv4().slice(0, 8);
@@ -763,23 +307,16 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
       throw new Error('No roof photo uploaded');
     }
 
-    const installerId = req.body.installer_id || 'default';
-
-    const installer = await loadInstallerProfile(installerId);
-
     const systemKw = parseFloat(req.body.system_kw || 5);
     const panelWatt = parseInt(req.body.panel_watt || 550);
     const panelCount = Math.ceil((systemKw * 1000) / panelWatt);
-
-    const quotedPrice = parseInt(req.body.quoted_price || 0);
-    const subsidyAmount = parseInt(req.body.subsidy_amount || 0);
+    const quotedPrice = parseInt(req.body.quoted_price || 325000);
+    const subsidyAmount = parseInt(req.body.subsidy_amount || 78000);
     const monthlyBill = parseInt(req.body.monthly_bill || 3000);
-
     const roofType = req.body.roof_type || 'flat_rcc';
     const panelBrand = req.body.panel_brand || 'Waaree Solar';
     const inverterBrand = req.body.inverter_brand || 'Solis';
-
-    const site = buildSiteFromBody(req.body);
+    const installerId = req.body.installer_id || 'default';
 
     let legHeights = [3];
 
@@ -796,6 +333,36 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
       address: req.body.customer_address || '',
     };
 
+    let installer = null;
+    const profilePath = path.join(TMP, `profile_${installerId}.json`);
+
+    if (fs.existsSync(profilePath)) {
+      installer = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+      console.log(`Profile loaded from /tmp. Projects: ${installer.projects?.length || 0}`);
+    } else {
+      console.log('Profile not in /tmp, fetching from Cloudinary...');
+
+      const url = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/solarscan/${installerId}/profile`;
+
+      try {
+        const response = await fetch(url);
+
+        if (response.ok) {
+          installer = await response.json();
+          fs.writeFileSync(profilePath, JSON.stringify(installer, null, 2));
+          console.log(`Profile restored. Projects: ${installer.projects?.length || 0}`);
+        } else {
+          console.log('Cloudinary profile fetch status:', response.status);
+        }
+      } catch (err) {
+        console.log('Cloudinary profile fetch error:', err.message);
+      }
+    }
+
+    if (!installer) {
+      installer = defaultInstaller();
+    }
+
     if (installer.projects) {
       for (let i = 0; i < installer.projects.length; i++) {
         const project = installer.projects[i];
@@ -809,6 +376,7 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
               const localPath = path.join(TMP, `${installerId}_project_${i}.jpg`);
               fs.writeFileSync(localPath, buf);
               project.local_path = localPath;
+              console.log(`Restored project ${i} photo from Cloudinary (${buf.length} bytes)`);
             }
           } catch (err) {
             console.log(`Could not restore project ${i} photo:`, err.message);
@@ -826,7 +394,6 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
     const prompt = buildPrompt(systemKw, panelCount, legHeights, roofType);
 
     const { toFile } = await import('openai');
-
     const imageFile = await toFile(
       fs.createReadStream(photoPath),
       'roof_marked.jpg',
@@ -858,16 +425,7 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
       'image'
     );
 
-    const fin = calcFinancials(
-      systemKw,
-      monthlyBill,
-      quotedPrice,
-      subsidyAmount,
-      site,
-      panelBrand,
-      inverterBrand,
-      installer.rate_master
-    );
+    const fin = calcFinancials(systemKw, monthlyBill, quotedPrice, subsidyAmount);
 
     console.log(`Job ${jobId}: Generating PDF...`);
 
@@ -917,44 +475,7 @@ app.post('/api/generate-quote', upload.single('photo'), async (req, res) => {
   }
 });
 
-// ---------------------------- PDF GENERATION ---------------------------------
-
-async function imageToBase64(url, localPath) {
-  let buf = null;
-
-  if (localPath && fs.existsSync(localPath)) {
-    try {
-      buf = fs.readFileSync(localPath);
-    } catch (err) {
-      console.log('Local image read failed:', err.message);
-    }
-  }
-
-  if (!buf && url) {
-    try {
-      const response = await fetch(url);
-
-      if (response.ok) {
-        buf = Buffer.from(await response.arrayBuffer());
-      }
-    } catch (err) {
-      console.log('Image URL fetch failed:', err.message);
-    }
-  }
-
-  if (!buf) return null;
-
-  return `data:image/jpeg;base64,${buf.toString('base64')}`;
-}
-
-function costRow(label, value, strong = false) {
-  return `
-    <tr>
-      <td>${safeText(label)}</td>
-      <td style="text-align:right;font-weight:${strong ? '900' : '700'};">${money(value)}</td>
-    </tr>
-  `;
-}
+// ---------------------------- PDF GENERATION ----------------------------------
 
 async function generatePDF({
   installer,
@@ -967,19 +488,73 @@ async function generatePDF({
   jobId,
   pdfPath,
 }) {
-  installer = normalizeInstaller(installer);
+  async function imgToBase64(url, localPath) {
+    let buf = null;
 
-  const aiImageSrc = await imageToBase64(aiImageUrl, null);
+    if (localPath && fs.existsSync(localPath)) {
+      try {
+        buf = fs.readFileSync(localPath);
+        console.log(`Image from local file: ${localPath} (${buf.length} bytes)`);
+      } catch (err) {
+        console.log('Local read failed:', err.message);
+      }
+    }
 
-  const projects = Array.isArray(installer.projects) ? installer.projects.slice(0, 6) : [];
+    if (!buf && url) {
+      try {
+        const response = await fetch(url);
+
+        if (response.ok) {
+          buf = Buffer.from(await response.arrayBuffer());
+          console.log(`Image from URL: ${url} (${buf.length} bytes)`);
+        }
+      } catch (err) {
+        console.log('URL fetch error:', err.message);
+      }
+    }
+
+    if (!buf) return null;
+
+    if (url && url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+      try {
+        const compressedUrl = url.replace('/upload/', '/upload/w_900,h_650,c_fill,q_70,f_jpg/');
+        const response = await fetch(compressedUrl);
+
+        if (response.ok) {
+          const compBuf = Buffer.from(await response.arrayBuffer());
+          console.log(`Compressed image: ${compBuf.length} bytes`);
+          return `data:image/jpeg;base64,${compBuf.toString('base64')}`;
+        }
+      } catch (err) {
+        console.log('Compression fetch failed:', err.message);
+      }
+    }
+
+    return `data:image/jpeg;base64,${buf.toString('base64')}`;
+  }
+
+  installer = {
+    ...defaultInstaller(),
+    ...(installer || {}),
+  };
+
+  installer.projects = Array.isArray(installer.projects) ? installer.projects : [];
+
+  const [aiImageBase64, ...projectPhotoBase64] = await Promise.all([
+    imgToBase64(aiImageUrl, null),
+    ...installer.projects.map(project => imgToBase64(project?.photo_url, project?.local_path)),
+  ]);
+
+  const aiImageSrc = aiImageBase64 || aiImageUrl;
+
+  const projects = installer.projects.map((project, index) => ({
+    ...project,
+    photo_url: projectPhotoBase64[index] || project?.photo_url || null,
+  }));
 
   while (projects.length < 6) {
     projects.push({});
   }
-
-  const projectImages = await Promise.all(
-    projects.map(project => imageToBase64(project.photo_url, project.local_path))
-  );
 
   const today = new Date().toLocaleDateString('en-IN', {
     day: '2-digit',
@@ -996,37 +571,108 @@ async function generatePDF({
 
   const proposalNo = `SP-${new Date().getFullYear()}-${jobId.toUpperCase()}`;
 
-  const companyName = safeText(installer.company_name, 'Solar Installer');
+  const companyName = safeText(installer.company_name, 'Surya Power Solutions');
   const companyPhone = safeText(installer.phone, '+91 98765 43210');
-  const companyEmail = safeText(installer.email, 'info@example.com');
-  const companyWebsite = safeText(installer.website, '');
-  const companyGst = safeText(installer.gst, '');
-
+  const companyEmail = safeText(installer.email, 'info@suryapower.com');
+  const companyWebsite = safeText(installer.website, 'www.suryapower.com');
+  const companyGst = safeText(installer.gst, 'XXXXXXXXXXXX');
   const customerName = safeText(customer.name, 'Homeowner');
   const customerAddress = safeText(customer.address, '');
 
-  const cb = fin.costBreakup || {};
+  const circleIcon = (label, bg = '#E8F5E9', color = '#1B5E20') => `
+    <span style="width:26px;height:26px;border-radius:50%;background:${bg};color:${color};display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;">${label}</span>
+  `;
 
-  const projectCards = projects.map((project, index) => {
-    const img = projectImages[index];
+  const sectionHeader = (subtitle, title) => `
+    <div style="background:#1B5E20;padding:40px 48px;color:white;">
+      <div style="font-size:12px;font-weight:700;color:#F9A825;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">${subtitle}</div>
+      <div style="font-size:32px;font-weight:900;">${title}</div>
+    </div>
+  `;
 
-    const hasProject = project && (project.name || img);
+  const projectCard = (project, index) => {
+    const hasProject = project && (project.name || project.photo_url);
 
     if (!hasProject) {
-      return '';
+      return `
+        <div style="width:calc(50% - 12px);height:560px;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
+          <div style="height:230px;background:linear-gradient(135deg,#1B5E20,#2E7D32);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="width:46px;height:46px;border-radius:50%;background:#F9A825;color:#1B5E20;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;margin-bottom:12px;">P</div>
+            <div style="font-size:18px;font-weight:900;color:white;">Project ${index + 1}</div>
+          </div>
+          <div style="padding:18px;flex:1;">
+            <div style="font-size:13px;color:#4A6741;">No project data added</div>
+          </div>
+        </div>
+      `;
     }
 
+    const imgStyle = project.photo_url
+      ? `background-image:url('${project.photo_url}');background-size:cover;background-position:center;`
+      : `background:linear-gradient(135deg,#1B5E20,#2E7D32);`;
+
     return `
-      <div class="project-card">
-        ${img ? `<img src="${img}" />` : `<div class="project-placeholder">Project ${index + 1}</div>`}
-        <div class="project-body">
-          <h3>${safeText(project.name, `Project ${index + 1}`)}</h3>
-          <p><b>Location:</b> ${safeText(project.city, '')}</p>
-          <p><b>Capacity:</b> ${safeText(project.cap || project.capacity, '5 kW')}</p>
-          <p><b>Roof:</b> ${safeText(project.roof, 'Flat RCC')}</p>
-          <p><b>Generation:</b> ${safeText(project.kwh, '7,500 kWh/year')}</p>
-          ${project.quote ? `<p class="quote">"${safeText(project.quote)}"</p>` : ''}
+      <div style="width:calc(50% - 12px);height:560px;background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;display:flex;flex-direction:column;">
+        <div style="height:230px;position:relative;${imgStyle}">
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65),transparent);"></div>
+          <div style="position:absolute;bottom:16px;left:16px;right:16px;color:white;">
+            <div style="font-size:20px;font-weight:900;">${safeText(project.name, `Project ${index + 1}`)}</div>
+            <div style="font-size:12px;margin-top:3px;opacity:0.9;">Location: ${safeText(project.city, '')}</div>
+          </div>
         </div>
+
+        <div style="padding:18px;flex:1;display:flex;flex-direction:column;">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="background:#F9A825;color:#1B5E20;font-size:11px;font-weight:900;padding:4px 12px;border-radius:20px;">${safeText(project.cap || project.capacity, '5 kW')} System</span>
+            <span style="background:#F1F8E9;color:#2E7D32;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #C8E6C9;">${safeText(project.roof, 'Flat RCC')}</span>
+          </div>
+
+          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">Generation: ${safeText(project.kwh, '7,500 kWh/year')} estimated</div>
+          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:6px;">Installed: ${safeText(project.date, '2025')}</div>
+          <div style="font-size:12px;color:#4A6741;font-weight:700;margin-bottom:10px;">Rating: ${safeText(project.rating, '4.9/5')}</div>
+
+          ${project.quote ? `
+            <div style="margin-top:auto;border-top:1px solid #C8E6C9;padding-top:10px;">
+              <div style="font-size:11px;color:#4A6741;font-style:italic;line-height:1.45;">"${safeText(project.quote, '')}"</div>
+              <div style="font-size:10px;color:#2E7D32;font-weight:900;margin-top:5px;">— ${safeText(project.quote_author || project.quoteAuthor, '')}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  };
+
+  const monthlyData = [
+    { m: 'Jan', v: 450 },
+    { m: 'Feb', v: 520 },
+    { m: 'Mar', v: 650 },
+    { m: 'Apr', v: 720 },
+    { m: 'May', v: 750 },
+    { m: 'Jun', v: 750 },
+    { m: 'Jul', v: 600 },
+    { m: 'Aug', v: 550 },
+    { m: 'Sep', v: 580 },
+    { m: 'Oct', v: 620 },
+    { m: 'Nov', v: 500 },
+    { m: 'Dec', v: 450 },
+  ];
+
+  const unitRateForChart = fin.yearlyKwh > 0
+    ? fin.annualSaving / fin.yearlyKwh
+    : 6;
+
+  const chartBars = monthlyData.map(item => {
+    const saving = Math.round(item.v * unitRateForChart);
+    const savingShort = saving >= 1000
+      ? `&#8377;${(saving / 1000).toFixed(1)}k`
+      : `&#8377;${saving}`;
+
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+        <div style="font-size:8px;color:#1B5E20;font-weight:900;margin-bottom:1px;white-space:nowrap;">${savingShort}</div>
+        <div style="font-size:7px;color:#4A6741;font-weight:700;margin-bottom:3px;white-space:nowrap;">${item.v} kWh</div>
+        <div style="width:14px;height:${Math.round((item.v / 750) * 70)}px;background:linear-gradient(to top,#8BC34A,#1B5E20);border-radius:2px 2px 0 0;"></div>
+        <div style="font-size:7px;font-weight:700;color:#4A6741;margin-top:3px;">${item.m}</div>
       </div>
     `;
   }).join('');
@@ -1036,572 +682,608 @@ async function generatePDF({
 <head>
 <meta charset="UTF-8">
 <style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
+  * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    font-family: Arial, sans-serif;
-    background: white;
-    color: #1A2F1A;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background:white;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
   }
-
   .page {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 38px 44px;
-    page-break-after: always;
-    position: relative;
-    overflow: hidden;
+    width:210mm;
+    min-height:297mm;
+    position:relative;
+    overflow:hidden;
+    page-break-after:always;
+    display:flex;
+    flex-direction:column;
   }
-
-  .green {
-    color: #1B5E20;
-  }
-
-  .light-bg {
-    background: #F1F8E9;
-  }
-
-  .dark-header {
-    background: #1B5E20;
-    color: white;
-    padding: 30px 44px;
-    margin: -38px -44px 30px;
-  }
-
-  .header-small {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #F9A825;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .header-title {
-    font-size: 34px;
-    font-weight: 900;
-  }
-
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 34px;
-  }
-
-  .company {
-    font-size: 24px;
-    font-weight: 900;
-    color: #1B5E20;
-  }
-
-  .muted {
-    color: #4A6741;
-  }
-
-  .hero {
-    background: #1B5E20;
-    color: white;
-    margin: -38px -44px 0;
-    padding: 46px 44px;
-    min-height: 300px;
-  }
-
-  .hero h1 {
-    font-size: 52px;
-    line-height: 1.05;
-    margin-top: 32px;
-  }
-
-  .hero .accent {
-    color: #F9A825;
-  }
-
-  .hero-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 26px;
-    margin-top: 34px;
-    align-items: stretch;
-  }
-
-  .hero-img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border: 4px solid #8BC34A;
-    border-radius: 20px;
-  }
-
-  .white-card {
-    background: white;
-    border: 2px solid #C8E6C9;
-    border-radius: 16px;
-    padding: 22px;
-  }
-
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin: 26px 0;
-  }
-
-  .stat {
-    background: white;
-    border: 2px solid #C8E6C9;
-    border-radius: 14px;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .stat .label {
-    font-size: 10px;
-    text-transform: uppercase;
-    color: #4A6741;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-
-  .stat .value {
-    font-size: 22px;
-    font-weight: 900;
-    color: #1B5E20;
-    margin-top: 6px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th {
-    background: #1B5E20;
-    color: white;
-    padding: 12px;
-    text-align: left;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  td {
-    padding: 11px 12px;
-    border-bottom: 1px solid #C8E6C9;
-    font-size: 12px;
-  }
-
-  tr:nth-child(even) td {
-    background: #F1F8E9;
-  }
-
-  .big-price {
-    font-size: 42px;
-    font-weight: 900;
-    color: #1B5E20;
-  }
-
-  .project-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 22px;
-    margin-top: 24px;
-  }
-
-  .project-card {
-    background: white;
-    border: 2px solid #C8E6C9;
-    border-radius: 16px;
-    overflow: hidden;
-    min-height: 340px;
-  }
-
-  .project-card img {
-    width: 100%;
-    height: 170px;
-    object-fit: cover;
-    display: block;
-  }
-
-  .project-placeholder {
-    height: 170px;
-    background: linear-gradient(135deg, #1B5E20, #2E7D32);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-  }
-
-  .project-body {
-    padding: 16px;
-  }
-
-  .project-body h3 {
-    color: #1B5E20;
-    font-size: 17px;
-    margin-bottom: 8px;
-  }
-
-  .project-body p {
-    font-size: 11px;
-    color: #4A6741;
-    margin-bottom: 5px;
-  }
-
-  .quote {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #C8E6C9;
-    font-style: italic;
-  }
-
-  .footer {
-    position: absolute;
-    bottom: 28px;
-    left: 44px;
-    right: 44px;
-    border-top: 1px solid #C8E6C9;
-    padding-top: 10px;
-    font-size: 10px;
-    color: #4A6741;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .note {
-    background: #FFF8E1;
-    border: 2px solid #F9A825;
-    border-radius: 14px;
-    padding: 16px;
-    color: #4A6741;
-    font-size: 13px;
-    line-height: 1.6;
-  }
+  table { border-collapse:collapse; width:100%; }
 </style>
 </head>
-
 <body>
 
-<div class="page light-bg">
-  <div class="topbar">
+<!-- PAGE 0: DARK INTRO -->
+<div class="page" style="background:#1A2F1A;">
+  <div style="position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(#fff 1.5px,transparent 1.5px);background-size:16px 16px;"></div>
+
+  <div style="position:relative;height:48%;width:100%;">
+    <div style="position:absolute;top:0;left:0;width:45%;height:96px;background:#F9A825;clip-path:polygon(0 0,100% 0,0 100%);z-index:2;"></div>
+
+    <div style="position:absolute;top:0;right:0;width:45%;height:128px;background:#2E7D32;clip-path:polygon(20% 0,100% 0,100% 100%,0 100%);z-index:2;display:flex;align-items:flex-start;justify-content:flex-end;padding:28px;">
+      <div style="display:flex;align-items:center;gap:12px;color:white;">
+        <div style="text-align:right;">
+          <div style="font-weight:900;font-size:18px;">${companyName}</div>
+          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.9;">Solutions</div>
+        </div>
+        <div style="width:40px;height:40px;background:#F9A825;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1B5E20;">S</div>
+      </div>
+    </div>
+
+    <div style="position:absolute;top:80px;right:0;width:96px;height:100%;background:#F9A825;clip-path:polygon(100% 0,100% 100%,0 40%);z-index:0;"></div>
+
+    <div style="position:absolute;inset:0;z-index:1;background:#1B5E20;border-radius:0 0 96px 0;overflow:hidden;">
+      <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200&q=80" style="width:100%;height:100%;object-fit:cover;object-position:bottom;" />
+      <div style="position:absolute;inset:0;background:rgba(27,94,32,0.2);"></div>
+    </div>
+  </div>
+
+  <div style="padding:24px 48px 48px;display:flex;flex-direction:column;flex:1;position:relative;z-index:1;">
+    <div style="text-align:right;margin-top:16px;">
+      <div style="font-size:58px;font-weight:900;font-style:italic;color:white;line-height:0.9;letter-spacing:-2px;">Sustainable</div>
+      <div style="font-size:58px;font-weight:900;font-style:italic;color:#F9A825;line-height:0.9;letter-spacing:-2px;margin-top:8px;">Energy Future</div>
+      <div style="color:#C8E6C9;font-size:13px;margin-top:20px;max-width:280px;margin-left:auto;line-height:1.6;">Invest in advanced solar technology, enhancing your property value while embracing sustainable living.</div>
+    </div>
+
+    <div style="margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:flex-end;">
+      <div>
+        <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Contact Us:</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          ${circleIcon('T', '#F9A825', '#1A2F1A')}
+          <span style="color:white;font-weight:600;">${companyPhone}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+          ${circleIcon('W', '#F9A825', '#1A2F1A')}
+          <span style="color:white;font-weight:600;">${companyWebsite}</span>
+        </div>
+        <div style="background:#F9A825;color:#1A2F1A;font-weight:900;text-transform:uppercase;letter-spacing:2px;font-size:12px;padding:10px 28px;display:inline-block;border-radius:4px;">Learn More</div>
+      </div>
+
+      <div style="text-align:right;">
+        <div style="color:white;font-weight:700;font-size:20px;margin-bottom:16px;">Our Service</div>
+        ${[
+          'Energy Consultation',
+          'System Maintenance',
+          'Solar Panel Installation',
+          'Battery & Inverter Setup',
+        ].map(service => `
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px;">
+            <span style="color:#C8E6C9;font-weight:600;font-size:13px;">${service}</span>
+            ${circleIcon('✓', '#8BC34A', 'white')}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1: COVER -->
+<div class="page" style="background:#F1F8E9;">
+  <div style="position:absolute;top:0;left:0;width:100%;height:55%;background:#1B5E20;border-radius:0 0 96px 96px;z-index:0;"></div>
+
+  <div style="padding:48px;display:flex;flex-direction:column;height:100%;position:relative;z-index:1;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;color:white;">
+        ${installer.logo_url
+          ? `<img src="${installer.logo_url}" style="height:44px;width:44px;border-radius:50%;object-fit:cover;border:2px solid #8BC34A;" />`
+          : `<span style="width:36px;height:36px;border-radius:50%;background:#F9A825;color:#1B5E20;display:inline-flex;align-items:center;justify-content:center;font-weight:900;">S</span>`
+        }
+        <div>
+          <div style="font-weight:900;font-size:22px;line-height:1;">${companyName}</div>
+          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;">Solutions</div>
+        </div>
+      </div>
+
+      <div style="text-align:right;">
+        <div style="color:#C8E6C9;font-size:12px;">Proposal No: ${proposalNo}</div>
+        <div style="color:#C8E6C9;font-size:12px;">Date: ${today}</div>
+        <div style="color:#C8E6C9;font-size:12px;">Valid Until: ${validDate}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <div style="color:#F9A825;font-weight:700;letter-spacing:3px;text-transform:uppercase;font-size:13px;margin-bottom:12px;">India's Trusted Rooftop Solar EPC</div>
+      <div style="font-size:52px;font-weight:900;color:white;line-height:1.1;">CLEAN ENERGY<br/>PROPOSAL</div>
+    </div>
+
+    <div style="flex:1;width:100%;border:4px solid #8BC34A;border-radius:24px;overflow:hidden;position:relative;min-height:220px;">
+      <img src="${aiImageSrc}" style="width:100%;height:100%;object-fit:cover;" />
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.3),transparent);"></div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;">
+      <div style="background:white;padding:20px 24px;border-radius:16px;border:1px solid #C8E6C9;flex:1;max-width:420px;">
+        <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Prepared Exclusively For:</div>
+        <div style="font-size:22px;font-weight:900;color:#1A2F1A;margin-bottom:4px;">${customerName}</div>
+        <div style="font-size:12px;color:#4A6741;margin-bottom:12px;">${customerAddress}</div>
+        <div style="height:1px;background:#C8E6C9;margin-bottom:12px;"></div>
+        <div style="font-size:13px;font-weight:700;color:#1B5E20;">System Size: <span style="color:#F9A825;font-weight:900;font-size:18px;background:#1B5E20;padding:2px 12px;border-radius:6px;">${fin.systemKw} kW</span></div>
+      </div>
+
+      <div style="text-align:right;">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(to right,#F1F8E9,#E8F5E9);border:1px solid #C8E6C9;padding:8px 16px;border-radius:20px;margin-bottom:12px;">
+          ${circleIcon('PM', '#F9A825', '#1B5E20')}
+          <span style="font-weight:700;color:#1B5E20;font-size:12px;">PM Surya Ghar: Muft Bijli Yojana</span>
+          ${circleIcon('✓', '#8BC34A', 'white')}
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#1B5E20;">Web: ${companyWebsite}</div>
+        <div style="font-size:13px;color:#4A6741;margin-top:4px;">Tel: ${companyPhone}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: WELCOME LETTER -->
+<div class="page" style="background:#F1F8E9;padding:48px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:4px solid #1B5E20;padding-bottom:20px;margin-bottom:36px;">
+    <div style="display:flex;align-items:center;gap:10px;color:#1B5E20;">
+      ${installer.logo_url
+        ? `<img src="${installer.logo_url}" style="height:36px;width:36px;border-radius:50%;object-fit:cover;" />`
+        : `<span style="width:32px;height:32px;border-radius:50%;background:#F9A825;color:#1B5E20;display:inline-flex;align-items:center;justify-content:center;font-weight:900;">S</span>`
+      }
+      <div>
+        <div style="font-weight:900;font-size:18px;">${companyName}</div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;">Solutions</div>
+      </div>
+    </div>
+
+    <div style="text-align:right;font-size:12px;color:#4A6741;font-weight:600;">
+      <div>${today}</div>
+      <div>Ref: ${proposalNo}</div>
+    </div>
+  </div>
+
+  <div style="font-size:26px;font-weight:900;color:#1A2F1A;margin-bottom:24px;">Dear ${customerName},</div>
+
+  <div style="background:linear-gradient(to right,#FFF8E1,#F1F8E9);border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+    <div style="width:56px;height:56px;background:white;border-radius:50%;border:3px solid #F9A825;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1B5E20;flex-shrink:0;">PM</div>
     <div>
-      <div class="company">${companyName}</div>
-      <div class="muted">${safeText(installer.tagline, 'Solar EPC & Rooftop Solutions')}</div>
+      <div style="font-size:18px;font-weight:900;color:#1B5E20;">PM Surya Ghar: Muft Bijli Yojana</div>
+      <div style="font-size:12px;font-weight:700;color:#2E7D32;margin-top:2px;">Empanelled & Authorized Vendor</div>
     </div>
-    <div style="text-align:right;font-size:12px;color:#4A6741;line-height:1.6;">
-      <div><b>Proposal:</b> ${proposalNo}</div>
-      <div><b>Date:</b> ${today}</div>
-      <div><b>Valid Until:</b> ${validDate}</div>
-    </div>
+    <div style="margin-left:auto;background:linear-gradient(to right,#F9A825,#FF8F00);color:white;font-weight:900;padding:8px 16px;border-radius:10px;font-size:12px;">SUBSIDY READY</div>
   </div>
 
-  <div class="hero">
-    <div class="header-small">Customer Solar Proposal</div>
-    <h1>Clean Energy<br><span class="accent">For Your Roof</span></h1>
-    <p style="margin-top:18px;font-size:16px;line-height:1.6;max-width:560px;">
-      Custom rooftop solar proposal prepared for ${customerName}.
-    </p>
-  </div>
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">Welcome to <strong style="color:#1B5E20;">${companyName}</strong>. We are excited to present your customised <strong>${fin.systemKw} kW solar system</strong>. As an authorised PM Surya Ghar partner with over ${safeText(installer.years, '8+')} years of excellence, we ensure a seamless transition to clean, affordable energy.</div>
 
-  <div class="hero-grid">
-    <div class="white-card">
-      <div class="header-small" style="color:#1B5E20;">Prepared For</div>
-      <h2>${customerName}</h2>
-      <p class="muted" style="margin-top:8px;line-height:1.5;">${customerAddress}</p>
-      <div style="margin-top:22px;font-size:18px;">
-        <b class="green">System Size:</b> ${fin.systemKw} kW
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;margin-bottom:20px;">This proposal outlines your exact system specifications, financial savings, and the straightforward roadmap to claiming your <strong style="color:#1B5E20;">${money(fin.subsidyAmount)}</strong> government subsidy.</div>
+
+  <div style="font-size:15px;color:#4A6741;line-height:1.8;">Please review the detailed projections inside. Our technical team is ready to answer any questions.</div>
+
+  <div style="margin-top:32px;color:#1B5E20;font-weight:700;">Warm Regards,</div>
+  <div style="font-family:Georgia,serif;font-size:36px;color:#2E7D32;opacity:0.9;margin-top:8px;">${companyName}</div>
+  <div style="font-weight:900;color:#1A2F1A;">${companyName}</div>
+  <div style="font-size:12px;color:#8BC34A;font-weight:700;">${companyEmail}</div>
+
+  <div style="margin-top:auto;padding-top:28px;display:flex;justify-content:center;">
+    <div style="background:white;border:1px solid #C8E6C9;border-radius:16px;padding:16px 28px;text-align:center;">
+      <div style="font-size:11px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Authorized & Empanelled</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(to right,#F1F8E9,#E8F5E9);border:1px solid #C8E6C9;padding:8px 16px;border-radius:20px;">
+        ${circleIcon('PM', '#F9A825', '#1B5E20')}
+        <span style="font-weight:700;color:#1B5E20;font-size:13px;">PM Surya Ghar: Muft Bijli Yojana</span>
+        ${circleIcon('✓', '#8BC34A', 'white')}
       </div>
-      <div style="margin-top:10px;font-size:18px;">
-        <b class="green">Net Payable:</b> ${money(fin.netCost)}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: PROJECTS 1 -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Our Track Record', 'Installer Profile & Past Projects')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
+    <div style="background:white;border:2px solid #C8E6C9;border-radius:16px;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;margin-bottom:28px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(to right,#F9A825,#8BC34A);"></div>
+
+      ${[
+        { label: 'In Business', value: safeText(installer.years, '8+'), icon: 'Y' },
+        { label: 'Installations', value: safeText(installer.installations, '450+'), icon: 'I' },
+        { label: 'Capacity', value: safeText(installer.total_kw, '2.1 MW'), icon: 'C' },
+        { label: 'Rating', value: safeText(installer.rating, '4.9/5'), icon: 'R' },
+      ].map((item, index) => `
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:44px;height:44px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1B5E20;">${item.icon}</div>
+          <div>
+            <div style="font-size:18px;font-weight:900;color:#1B5E20;">${item.value}</div>
+            <div style="font-size:9px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${item.label}</div>
+          </div>
+        </div>
+        ${index < 3 ? '<div style="width:1px;height:40px;background:#C8E6C9;"></div>' : ''}
+      `).join('')}
+    </div>
+
+    <div style="display:flex;gap:24px;flex:1;">
+      ${projectCard(projects[0], 0)}
+      ${projectCard(projects[1], 1)}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: PROJECTS 2 -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Our Track Record', 'Installer Profile & Past Projects')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
+    <div style="display:flex;gap:24px;flex:1;">
+      ${projectCard(projects[2], 2)}
+      ${projectCard(projects[3], 3)}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 5: PROJECTS 3 -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Our Track Record', 'Installer Profile & Past Projects')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;flex:1;">
+    <div style="display:flex;gap:24px;flex:1;margin-bottom:24px;">
+      ${projectCard(projects[4], 4)}
+      ${projectCard(projects[5], 5)}
+    </div>
+
+    <div style="background:#1B5E20;color:white;border-radius:16px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;">
+      ${[
+        { icon: 'M', label: 'MNRE Empanelled', sub: 'Installer' },
+        { icon: 'T', label: 'Tier-1 Brands Only', sub: 'Waaree, Adani, Vikram' },
+        { icon: 'A', label: '5 Year Free AMC', sub: 'Included' },
+      ].map((item, index) => `
+        <div style="display:flex;align-items:center;gap:12px;flex:1;justify-content:center;">
+          <div style="background:#8BC34A;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1B5E20;font-weight:900;font-size:16px;">${item.icon}</div>
+          <div style="text-align:center;">
+            <div style="font-weight:700;font-size:13px;">${item.label}</div>
+            <div style="font-size:10px;opacity:0.8;">${item.sub}</div>
+          </div>
+        </div>
+        ${index < 2 ? '<div style="width:1px;height:40px;background:rgba(255,255,255,0.2);"></div>' : ''}
+      `).join('')}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 6: SYSTEM DESIGN -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Technical Overview', 'Proposed System Design')}
+  <div style="padding:28px 48px;">
+    <div style="width:100%;height:340px;border-radius:20px;overflow:hidden;border:2px solid #C8E6C9;margin-bottom:24px;position:relative;">
+      <img src="${aiImageSrc}" style="width:100%;height:100%;object-fit:cover;" />
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4),transparent);"></div>
+      <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:white;font-weight:700;font-size:13px;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;">AI Generated - Your Actual Roof View</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+      ${[
+        { title: 'System Size', value: `${fin.systemKw} kW`, icon: 'P' },
+        { title: 'Solar Panels', value: `${panelCount}x ${safeText(panelBrand.split(' ')[0], 'Panel')} 550W`, icon: 'S' },
+        { title: 'Orientation', value: 'South / 25 deg Tilt', icon: 'O' },
+        { title: 'Connection', value: 'On-Grid Net Meter', icon: 'G' },
+      ].map(item => `
+        <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#E8F5E9;color:#1B5E20;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;margin-bottom:8px;">${item.icon}</div>
+          <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${item.title}</div>
+          <div style="font-size:14px;font-weight:900;color:#1A2F1A;">${item.value}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="background:linear-gradient(135deg,#8BC34A,#2E7D32);width:54px;height:54px;border-radius:50%;font-size:16px;font-weight:900;color:white;display:flex;align-items:center;justify-content:center;">E</div>
+        <div>
+          <div style="font-size:17px;font-weight:900;color:#1B5E20;">Environmental Impact</div>
+          <div style="font-size:13px;font-weight:700;color:#4A6741;">Offsets ${fin.co2} Tonnes of CO2 emissions annually</div>
+        </div>
+      </div>
+
+      <div style="background:#F1F8E9;padding:12px 16px;border-radius:12px;border:1px solid #C8E6C9;text-align:right;">
+        <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;">Equivalent to planting</div>
+        <div style="font-size:26px;font-weight:900;color:#1B5E20;">${fin.trees} Trees / Year</div>
+      </div>
+    </div>
+
+    <div style="background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;">
+      <div style="background:#1B5E20;padding:12px 20px;color:white;font-weight:700;font-size:14px;">Detailed Specifications</div>
+      ${[
+        ['System Type', 'Grid-Tied (On-Grid) Rooftop Solar PV System'],
+        ['Panel Model', `${safeText(panelBrand, 'Waaree Solar')} 550W Monocrystalline PERC Half-Cut`],
+        ['Inverter Model', `${safeText(inverterBrand, 'Solis')} ${fin.systemKw}kW String Inverter (Wi-Fi Enabled)`],
+        ['Mounting Structure', 'Hot-Dip Galvanized (HDG) MS, 25 deg Optimal Tilt'],
+        ['Estimated Annual Gen.', `${fin.yearlyKwh.toLocaleString('en-IN')} kWh (Units) per year`],
+      ].map((row, index) => `
+        <div style="display:flex;border-bottom:1px solid #C8E6C9;background:${index % 2 === 0 ? '#F1F8E9' : 'white'};">
+          <div style="padding:12px 20px;width:40%;font-size:12px;font-weight:700;color:#4A6741;">${row[0]}</div>
+          <div style="padding:12px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${row[1]}</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 7: FINANCIAL SAVINGS -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Return on Investment', 'Financial Savings Analysis')}
+  <div style="padding:28px 48px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:24px;">
+      <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;">Total System Cost</div>
+        <div style="font-size:20px;font-weight:900;color:#1A2F1A;margin-top:6px;">${money(fin.quotedPrice)}</div>
+      </div>
+
+      <div style="background:#E8F5E9;border:2px solid #8BC34A;border-radius:12px;padding:16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;right:0;background:#8BC34A;color:white;font-size:9px;font-weight:900;padding:3px 8px;border-radius:0 0 0 8px;">APPROVED</div>
+        <div style="font-size:10px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:1px;">PM Surya Ghar Subsidy</div>
+        <div style="font-size:20px;font-weight:900;color:#2E7D32;margin-top:6px;">${money(fin.subsidyAmount)}</div>
+      </div>
+
+      <div style="background:#1B5E20;border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;color:#8BC34A;text-transform:uppercase;letter-spacing:1px;">Your Net Investment</div>
+        <div style="font-size:24px;font-weight:900;color:white;margin-top:6px;">${money(fin.netCost)}</div>
+      </div>
+
+      <div style="background:#F1F8E9;border:2px solid #C8E6C9;border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:1px;">Payback Period</div>
+        <div style="font-size:20px;font-weight:900;color:#1B5E20;margin-top:6px;">${fin.payback} Years</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:24px;">
+      <div style="flex:1;background:white;border:2px solid #C8E6C9;border-radius:16px;overflow:hidden;">
+        <div style="background:#E8F5E9;padding:14px 20px;border-bottom:2px solid #C8E6C9;">
+          <div style="font-weight:900;color:#1B5E20;font-size:14px;">Savings Projections</div>
+        </div>
+
+        ${[
+          ['Annual Generation', `${fin.yearlyKwh.toLocaleString('en-IN')} kWh`, '#1A2F1A'],
+          ['Current Monthly Bill', money(fin.monthlyBefore), '#1A2F1A'],
+          ['Monthly Savings', money(Math.round(fin.annualSaving / 12)), '#2E7D32'],
+          ['Annual Savings', money(fin.annualSaving), '#2E7D32'],
+          ['10 Year Savings', money(fin.annualSaving * 10), '#1A2F1A'],
+          ['25 Year Savings', money(fin.annualSaving * 25), '#1A2F1A'],
+          ['25 Year Net Profit', money(fin.saving25yr), '#F9A825'],
+        ].map(row => `
+          <div style="display:flex;justify-content:space-between;padding:10px 20px;border-bottom:1px solid #C8E6C9;">
+            <span style="font-size:12px;color:#4A6741;font-weight:600;">${row[0]}</span>
+            <span style="font-size:12px;font-weight:900;color:${row[2]};">${row[1]}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;background:white;border:2px solid #C8E6C9;border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:10px;color:#4A6741;font-weight:700;text-transform:uppercase;margin-bottom:6px;">Before Solar</div>
+            <div style="font-size:22px;font-weight:900;color:#1A2F1A;">${money(fin.monthlyBefore)}</div>
+            <div style="font-size:10px;color:#4A6741;margin-top:4px;">per month</div>
+          </div>
+
+          <div style="flex:1;background:#F1F8E9;border:2px solid #8BC34A;border-radius:12px;padding:14px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-4px;right:-16px;background:#8BC34A;color:white;font-size:9px;font-weight:900;padding:4px 24px;transform:rotate(45deg);">SAVE ${fin.savePct}%</div>
+            <div style="font-size:10px;color:#2E7D32;font-weight:700;text-transform:uppercase;margin-bottom:6px;">After Solar</div>
+            <div style="font-size:22px;font-weight:900;color:#1B5E20;">${money(fin.monthlyAfter)}</div>
+            <div style="font-size:10px;color:#2E7D32;margin-top:4px;">per month</div>
+          </div>
+        </div>
+
+        <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;padding:16px;flex:1;">
+          <div style="font-size:10px;font-weight:700;color:#4A6741;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Monthly Generation & Savings</div>
+          <div style="display:flex;align-items:flex-end;gap:2px;height:120px;border-bottom:2px solid #E8F5E9;padding-bottom:4px;">
+            ${chartBars}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 8: BILL OF MATERIALS -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Technical Delivery', 'Bill of Materials (BOM)')}
+  <div style="padding:28px 48px;">
+    <div style="background:white;border-radius:16px;overflow:hidden;border:2px solid #C8E6C9;margin-bottom:20px;">
+      <table>
+        <thead>
+          <tr style="background:#1B5E20;color:white;">
+            <th style="padding:14px 20px;text-align:left;font-size:11px;text-transform:uppercase;width:22%;">Component</th>
+            <th style="padding:14px 20px;text-align:left;font-size:11px;text-transform:uppercase;width:44%;">Brand & Specification</th>
+            <th style="padding:14px 20px;text-align:center;font-size:11px;text-transform:uppercase;width:10%;">Qty</th>
+            <th style="padding:14px 20px;text-align:left;font-size:11px;text-transform:uppercase;width:24%;">Warranty</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${[
+            [safeText(panelBrand, 'Solar Panel'), `${safeText(panelBrand, 'Solar Panel')} 550W Mono PERC Half Cut`, `${panelCount} Nos`, '25yr Performance / 10yr Product'],
+            ['Inverter', `${safeText(inverterBrand, 'Inverter')} ${fin.systemKw}kW Wi-Fi String Inverter IP65`, '1 No', '10 Years'],
+            ['Structure', 'GI/MS Hot Dip Galvanized 25 deg MNRE Approved', '1 Set', '10 Years'],
+            ['DC Cables', '4mm UV Resistant with MC4 Connectors', 'As Req.', '10 Years'],
+            ['AC DB Box', 'IP65 Enclosure with SPD, MCB, Isolator', '1 No', '2 Years'],
+            ['Earthing & LA', 'Maintenance-free GI Plate & Lightning Arrester', '1 Set', '5 Years'],
+            ['Net Meter', 'Bidirectional DISCOM Approved Meter', '1 No', 'Per DISCOM'],
+          ].map((row, index) => `
+            <tr style="border-bottom:1px solid #C8E6C9;background:${index % 2 === 0 ? 'white' : '#F1F8E9'};">
+              <td style="padding:12px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${row[0]}</td>
+              <td style="padding:12px 20px;font-size:12px;font-weight:700;color:#4A6741;">${row[1]}</td>
+              <td style="padding:12px 20px;font-size:12px;font-weight:900;color:#1B5E20;text-align:center;background:#E8F5E9;">${row[2]}</td>
+              <td style="padding:12px 20px;font-size:12px;font-weight:900;color:#2E7D32;">${row[3]}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:16px 20px;display:flex;gap:16px;">
+      <div style="background:#E8F5E9;width:40px;height:40px;border-radius:50%;font-size:16px;font-weight:900;color:#1B5E20;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-start;">B</div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:#1B5E20;margin-bottom:6px;">Balance of System (BOS) Inclusion Note:</div>
+        <div style="font-size:12px;color:#4A6741;font-weight:600;line-height:1.6;">All necessary civil work for foundation blocks, PVC conduits, junction boxes, cable trays, and minor hardware required for a safe, code-compliant installation are included in the system cost.</div>
+        <div style="font-size:11px;color:#4A6741;font-weight:600;line-height:1.6;margin-top:8px;">Final brand/model may vary based on stock availability, site condition, and DISCOM requirements. Equivalent or higher specification material will be supplied.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 9: PRICING & PAYMENT -->
+<div class="page" style="background:#F1F8E9;">
+  ${sectionHeader('Commercials', 'Pricing & Payment Terms')}
+  <div style="padding:28px 48px;display:flex;flex-direction:column;gap:22px;">
+    <div style="background:white;border:4px solid #1B5E20;border-radius:16px;padding:28px;position:relative;margin-top:12px;">
+      <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:#1B5E20;color:white;padding:6px 20px;border-radius:20px;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">Final Quotation</div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:8px;">
+        <span style="font-size:17px;font-weight:700;color:#4A6741;">Total System Cost</span>
+        <span style="font-size:20px;font-weight:900;color:#1A2F1A;">${money(fin.quotedPrice)}</span>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:20px;border-bottom:2px dashed #C8E6C9;color:#2E7D32;">
+        <span style="font-size:15px;font-weight:700;">Less: PM Surya Ghar Subsidy</span>
+        <span style="font-size:17px;font-weight:900;">- ${money(fin.subsidyAmount)}</span>
+      </div>
+
+      <div style="background:#F1F8E9;padding:20px 24px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;border:1px solid #C8E6C9;">
+        <div>
+          <div style="font-size:11px;font-weight:900;color:#1B5E20;text-transform:uppercase;letter-spacing:2px;">Net Amount Payable</div>
+          <div style="font-size:10px;color:#4A6741;margin-top:2px;">*Excluding GST as applicable</div>
+        </div>
+        <div style="font-size:44px;font-weight:900;color:#1B5E20;">${money(fin.netCost)}</div>
       </div>
     </div>
 
     <div>
-      ${aiImageSrc ? `<img class="hero-img" src="${aiImageSrc}" />` : `<div class="white-card">AI image not available</div>`}
-    </div>
-  </div>
-
-  <div class="footer">
-    <span>${companyName}</span>
-    <span>${companyPhone}</span>
-  </div>
-</div>
-
-<div class="page light-bg">
-  <div class="dark-header">
-    <div class="header-small">Financial Overview</div>
-    <div class="header-title">Savings & Payback</div>
-  </div>
-
-  <div class="stats">
-    <div class="stat">
-      <div class="label">System Cost</div>
-      <div class="value">${money(fin.quotedPrice)}</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">Subsidy</div>
-      <div class="value">${money(fin.subsidyAmount)}</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">Net Payable</div>
-      <div class="value">${money(fin.netCost)}</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">Payback</div>
-      <div class="value">${fin.payback} yrs</div>
-    </div>
-  </div>
-
-  <div class="two-col">
-    <div class="white-card">
-      <h2 class="green" style="margin-bottom:14px;">Savings Projection</h2>
-      <table>
-        <tbody>
-          <tr><td>Annual Generation</td><td style="text-align:right;font-weight:900;">${fin.yearlyKwh.toLocaleString('en-IN')} kWh</td></tr>
-          <tr><td>Current Monthly Bill</td><td style="text-align:right;font-weight:900;">${money(fin.monthlyBefore)}</td></tr>
-          <tr><td>Estimated Monthly Bill After Solar</td><td style="text-align:right;font-weight:900;">${money(fin.monthlyAfter)}</td></tr>
-          <tr><td>Annual Savings</td><td style="text-align:right;font-weight:900;">${money(fin.annualSaving)}</td></tr>
-          <tr><td>25-Year Gross Savings</td><td style="text-align:right;font-weight:900;">${money(fin.annualSaving * 25)}</td></tr>
-          <tr><td>25-Year Net Profit</td><td style="text-align:right;font-weight:900;">${money(fin.saving25yr)}</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="white-card">
-      <h2 class="green" style="margin-bottom:14px;">Environmental Impact</h2>
-      <div class="stat" style="margin-bottom:14px;">
-        <div class="label">CO₂ Offset</div>
-        <div class="value">${fin.co2} Tons / Year</div>
+      <div style="font-size:17px;font-weight:900;color:#1B5E20;margin-bottom:12px;">Payment Milestones</div>
+      <div style="background:white;border:2px solid #C8E6C9;border-radius:12px;overflow:hidden;">
+        <table>
+          <thead>
+            <tr style="background:#E8F5E9;color:#2E7D32;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">
+              <th style="padding:12px 20px;text-align:left;">Milestone</th>
+              <th style="padding:12px 20px;text-align:left;">Timeline</th>
+              <th style="padding:12px 20px;text-align:right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${[
+              ['20% Advance', 'On Proposal Signing (Due Today)', money(fin.advance)],
+              ['70% Material Readiness', 'Before Material Delivery (Day 3-5)', money(fin.material)],
+              ['10% Commissioning', 'After Meter Install & Testing', money(fin.final)],
+            ].map((row, index) => `
+              <tr style="border-top:1px solid #C8E6C9;background:${index % 2 === 1 ? '#F1F8E9' : 'white'};">
+                <td style="padding:13px 20px;font-size:12px;font-weight:900;color:#1A2F1A;">${row[0]}</td>
+                <td style="padding:13px 20px;font-size:12px;font-weight:700;color:#4A6741;">${row[1]}</td>
+                <td style="padding:13px 20px;font-size:12px;font-weight:900;color:#1A2F1A;text-align:right;">${row[2]}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
       </div>
-      <div class="stat">
-        <div class="label">Equivalent Trees</div>
-        <div class="value">${fin.trees} Trees / Year</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:#1B5E20;color:white;padding:20px;border-radius:16px;">
+        <div style="font-size:11px;font-weight:900;color:#F9A825;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2);">Bank Details</div>
+        <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">Bank:</span>${safeText(installer.bank_name, 'HDFC Bank')}</div>
+        <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">Account:</span>${safeText(installer.account_no, 'XXXX XXXX XXXX')}</div>
+        <div style="font-size:12px;margin-bottom:8px;"><span style="color:#8BC34A;font-weight:700;display:inline-block;width:70px;">IFSC:</span>${safeText(installer.ifsc, 'HDFC0001234')}</div>
+        <div style="font-size:12px;font-weight:900;color:#F9A825;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);">UPI: ${safeText(installer.upi, 'contact@suryapower.com')}</div>
+      </div>
+
+      <div style="background:white;border:2px solid #8BC34A;border-radius:16px;padding:20px;">
+        <div style="font-size:14px;font-weight:900;color:#1B5E20;margin-bottom:10px;">Important Note</div>
+        <div style="font-size:12px;color:#4A6741;line-height:1.7;">GST at prevailing rates will be charged extra. The PM Surya Ghar subsidy of ${money(fin.subsidyAmount)} will be credited <strong style="color:#1B5E20;">directly to your linked bank account</strong> by the government, subject to applicable approval.</div>
       </div>
     </div>
   </div>
-
-  <div class="footer">
-    <span>${proposalNo}</span>
-    <span>Financial estimates are indicative and subject to site verification.</span>
-  </div>
 </div>
 
-<div class="page light-bg">
-  <div class="dark-header">
-    <div class="header-small">Technical Details</div>
-    <div class="header-title">System Design & BOM</div>
-  </div>
+<!-- PAGE 10: NEXT STEPS + FOOTER -->
+<div class="page" style="background:#F1F8E9;padding:48px;display:flex;flex-direction:column;">
+  <div style="margin-bottom:36px;">
+    <div style="font-size:28px;font-weight:900;color:#1B5E20;text-align:center;margin-bottom:32px;">Your Journey to Clean Energy</div>
 
-  <div class="white-card" style="margin-bottom:24px;">
-    <h2 class="green" style="margin-bottom:14px;">System Specification</h2>
-    <table>
-      <tbody>
-        <tr><td>System Type</td><td><b>On-Grid Rooftop Solar PV System</b></td></tr>
-        <tr><td>System Size</td><td><b>${fin.systemKw} kW</b></td></tr>
-        <tr><td>Solar Panels</td><td><b>${panelCount} Nos ${safeText(panelBrand)} Panels</b></td></tr>
-        <tr><td>Inverter</td><td><b>${safeText(inverterBrand)} String Inverter</b></td></tr>
-        <tr><td>Mounting Structure</td><td><b>GI/MS rooftop structure as per site condition</b></td></tr>
-        <tr><td>Estimated Annual Generation</td><td><b>${fin.yearlyKwh.toLocaleString('en-IN')} kWh</b></td></tr>
-      </tbody>
-    </table>
-  </div>
+    <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;">
+      <div style="position:absolute;top:28px;left:0;width:100%;height:4px;background:#C8E6C9;border-radius:2px;z-index:0;"></div>
 
-  <div class="white-card">
-    <h2 class="green" style="margin-bottom:14px;">Bill of Materials</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Component</th>
-          <th>Specification</th>
-          <th>Qty</th>
-          <th>Warranty</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Solar Panel</td><td>${safeText(panelBrand)} Mono PERC / TopCon</td><td>${panelCount} Nos</td><td>25 Years Performance</td></tr>
-        <tr><td>Inverter</td><td>${safeText(inverterBrand)} Grid-Tie Inverter</td><td>1 No</td><td>5-10 Years</td></tr>
-        <tr><td>Structure</td><td>GI/MS Mounting Structure</td><td>1 Set</td><td>As per vendor</td></tr>
-        <tr><td>DC Cable</td><td>Solar DC Cable with MC4</td><td>As required</td><td>As per vendor</td></tr>
-        <tr><td>AC/DC DB</td><td>Protection Box with SPD/MCB</td><td>1 Set</td><td>As per vendor</td></tr>
-        <tr><td>Earthing + LA</td><td>Earthing and Lightning Protection</td><td>1 Set</td><td>As per vendor</td></tr>
-        <tr><td>Net Meter</td><td>DISCOM-approved bidirectional meter</td><td>1 No</td><td>As per DISCOM</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="footer">
-    <span>${companyName}</span>
-    <span>${companyEmail}</span>
-  </div>
-</div>
-
-<div class="page light-bg">
-  <div class="dark-header">
-    <div class="header-small">Costing</div>
-    <div class="header-title">Price Calculation Breakup</div>
-  </div>
-
-  <div class="two-col">
-    <div class="white-card">
-      <h2 class="green" style="margin-bottom:14px;">Installer Cost Breakup</h2>
-      <table>
-        <tbody>
-          ${costRow('Panel Cost', cb.panelCost)}
-          ${costRow('Inverter Cost', cb.inverterCost)}
-          ${costRow('Structure Cost', cb.structureCost)}
-          ${costRow('Height Extra', cb.heightExtra)}
-          ${costRow('Cable Cost', cb.cableCost)}
-          ${costRow('Labour Cost', cb.labourCost)}
-          ${costRow('AC/DC DB Cost', cb.acDcBoxCost)}
-          ${costRow('Earthing + LA Cost', cb.earthingLaCost)}
-          ${costRow('Net Metering Cost', cb.netMeteringCost)}
-          ${costRow('Transport Cost', cb.transportCost)}
-          ${costRow('Miscellaneous Cost', cb.miscCost)}
-          ${costRow('Base Cost', cb.baseCost, true)}
-          ${costRow('GST Amount', cb.gstAmount)}
-          ${costRow('Installer Total Cost', cb.installerCost, true)}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="white-card">
-      <h2 class="green" style="margin-bottom:14px;">Customer Quotation</h2>
-      <table>
-        <tbody>
-          ${costRow('Suggested Quote', fin.suggestedQuote)}
-          ${costRow('Final Quote', fin.quotedPrice, true)}
-          ${costRow('Estimated Installer Cost', fin.installerCost)}
-          ${costRow('Estimated Margin', fin.estimatedMargin, true)}
-          <tr><td>Margin %</td><td style="text-align:right;font-weight:900;">${fin.estimatedMarginPct}%</td></tr>
-          ${costRow('Government Subsidy', fin.subsidyAmount)}
-          ${costRow('Net Customer Payable', fin.netCost, true)}
-        </tbody>
-      </table>
-
-      <div class="note" style="margin-top:20px;">
-        This costing is generated from installer-defined rate master and site inputs.
-        Final price is subject to physical site verification, stock availability, DISCOM approval, and customer requirements.
-      </div>
+      ${[
+        { no: 1, label: 'Sign Proposal' },
+        { no: 2, label: '20% Advance' },
+        { no: 3, label: 'Site Survey' },
+        { no: 4, label: 'Installation' },
+        { no: 5, label: 'Net Metering' },
+        { no: 6, label: 'Subsidy Credit' },
+      ].map(step => `
+        <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:#1B5E20;color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;border:4px solid #F1F8E9;">${step.no}</div>
+          <div style="font-size:10px;font-weight:900;color:#2E7D32;text-align:center;width:70px;line-height:1.3;text-transform:uppercase;">${step.label}</div>
+        </div>
+      `).join('')}
     </div>
   </div>
 
-  <div class="footer">
-    <span>Private costing included for installer review</span>
-    <span>${proposalNo}</span>
-  </div>
-</div>
-
-<div class="page light-bg">
-  <div class="dark-header">
-    <div class="header-small">Commercials</div>
-    <div class="header-title">Payment Terms & Next Steps</div>
-  </div>
-
-  <div class="white-card" style="margin-bottom:24px;">
-    <h2 class="green" style="margin-bottom:14px;">Final Quotation</h2>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <span style="font-size:18px;">Total System Cost</span>
-      <span class="big-price">${money(fin.quotedPrice)}</span>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:36px;">
+    <div style="background:white;border:2px solid #C8E6C9;border-radius:16px;padding:20px;">
+      <div style="font-size:16px;font-weight:900;color:#1B5E20;margin-bottom:14px;">Scope Included</div>
+      ${[
+        'All Solar Materials & Components',
+        'End-to-End Installation & Wiring',
+        'Custom Mounting Structure',
+        'Subsidy Documentation & Portal Entry',
+        'Net Meter Application Process',
+        '1 Year Free Workmanship Warranty',
+      ].map(item => `
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <span style="width:16px;height:16px;border-radius:50%;background:#8BC34A;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0;">✓</span>
+          <span style="font-size:12px;color:#4A6741;font-weight:700;">${item}</span>
+        </div>
+      `).join('')}
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <span style="font-size:18px;">Subsidy</span>
-      <span style="font-size:28px;font-weight:900;color:#2E7D32;">${money(fin.subsidyAmount)}</span>
-    </div>
-
-    <div style="background:#E8F5E9;border:2px solid #8BC34A;border-radius:14px;padding:18px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:20px;font-weight:900;color:#1B5E20;">Net Customer Payable</span>
-      <span class="big-price">${money(fin.netCost)}</span>
-    </div>
-  </div>
-
-  <div class="white-card" style="margin-bottom:24px;">
-    <h2 class="green" style="margin-bottom:14px;">Payment Milestones</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Milestone</th>
-          <th>Timeline</th>
-          <th style="text-align:right;">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>20% Advance</td><td>On confirmation</td><td style="text-align:right;font-weight:900;">${money(fin.advance)}</td></tr>
-        <tr><td>70% Material Payment</td><td>Before delivery</td><td style="text-align:right;font-weight:900;">${money(fin.material)}</td></tr>
-        <tr><td>10% Final Payment</td><td>After commissioning</td><td style="text-align:right;font-weight:900;">${money(fin.final)}</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="two-col">
-    <div class="white-card">
-      <h2 class="green" style="margin-bottom:14px;">Bank Details</h2>
-      <p><b>Bank:</b> ${safeText(installer.bank_name, 'Not provided')}</p>
-      <p><b>Account:</b> ${safeText(installer.account_no, 'Not provided')}</p>
-      <p><b>IFSC:</b> ${safeText(installer.ifsc, 'Not provided')}</p>
-      <p><b>UPI:</b> ${safeText(installer.upi, 'Not provided')}</p>
-    </div>
-
-    <div class="white-card">
-      <h2 class="green" style="margin-bottom:14px;">Contact</h2>
-      <p><b>Phone:</b> ${companyPhone}</p>
-      <p><b>Email:</b> ${companyEmail}</p>
-      <p><b>Website:</b> ${companyWebsite}</p>
-      <p><b>GST:</b> ${companyGst}</p>
+    <div style="background:white;border:2px solid #C8E6C9;border-radius:16px;padding:20px;">
+      <div style="font-size:16px;font-weight:900;color:#1B5E20;margin-bottom:14px;">Scope Excluded</div>
+      ${[
+        'Official DISCOM / Utility Fees',
+        'Major Pre-existing Electrical Upgrades',
+        'Major Civil Roof Repairs before installation',
+        'Water arrangement for panel cleaning',
+      ].map(item => `
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <span style="width:16px;height:16px;border-radius:50%;background:#C8E6C9;color:#1B5E20;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0;">-</span>
+          <span style="font-size:12px;color:#4A6741;font-weight:700;">${item}</span>
+        </div>
+      `).join('')}
     </div>
   </div>
 
-  <div style="margin-top:34px;display:flex;justify-content:space-between;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:36px;">
     <div style="width:38%;text-align:center;border-top:2px solid #1B5E20;padding-top:12px;">
-      <b>${customerName}</b>
-      <div style="font-size:10px;color:#4A6741;margin-top:4px;">Customer Acceptance</div>
+      <div style="font-weight:900;color:#1A2F1A;">${customerName}</div>
+      <div style="font-size:9px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Customer Acceptance & Date</div>
     </div>
 
     <div style="width:38%;text-align:center;border-top:2px solid #1B5E20;padding-top:12px;">
-      <b>${companyName}</b>
-      <div style="font-size:10px;color:#4A6741;margin-top:4px;">Authorized Signatory</div>
+      <div style="font-weight:900;color:#1A2F1A;">${companyName}</div>
+      <div style="font-size:9px;color:#4A6741;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Authorised Signatory - ${today}</div>
     </div>
   </div>
 
-  <div class="footer">
-    <span>${companyName}</span>
-    <span>Powered by SolarQuote</span>
+  <div style="margin-top:auto;background:#1B5E20;color:white;border-radius:24px 24px 0 0;padding:32px 40px;text-align:center;">
+    <div style="font-size:28px;font-weight:900;margin-bottom:10px;">Thank You for Choosing Clean Energy</div>
+    <div style="color:#8BC34A;font-size:16px;font-weight:700;margin-bottom:22px;">Together we are building a sustainable India.</div>
+
+    <div style="display:flex;justify-content:center;gap:24px;border-top:1px solid rgba(139,195,74,0.4);border-bottom:1px solid rgba(139,195,74,0.4);padding:16px 0;margin-bottom:18px;font-size:12px;font-weight:700;">
+      <span>Tel: ${companyPhone}</span>
+      <span>Email: ${companyEmail}</span>
+      <span>Web: ${companyWebsite}</span>
+    </div>
+
+    <div style="font-size:11px;color:#C8E6C9;font-weight:600;letter-spacing:0.5px;">
+      ${companyName} | GST: ${companyGst} | Powered by SolarQuote
+    </div>
   </div>
 </div>
-
-${projectCards ? `
-<div class="page light-bg">
-  <div class="dark-header">
-    <div class="header-small">Trust Proof</div>
-    <div class="header-title">Past Projects</div>
-  </div>
-
-  <div class="project-grid">
-    ${projectCards}
-  </div>
-
-  <div class="footer">
-    <span>${companyName}</span>
-    <span>Past project details shared by installer</span>
-  </div>
-</div>
-` : ''}
 
 </body>
 </html>`;
@@ -1652,7 +1334,6 @@ ${projectCards ? `
   console.log(`PDF generated: ${pdfBuffer.length} bytes`);
 
   fs.writeFileSync(pdfPath, pdfBuffer);
-
   return pdfBuffer;
 }
 
