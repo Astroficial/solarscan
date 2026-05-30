@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>SolarQuote</title>
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f1923;color:#fff;min-height:100vh}
+body{font-family:-apple-system,sans-serif;background:#0f1923;color:#fff;min-height:100vh}
 .header{background:#1B5E20;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
 .header h1{font-size:18px;font-weight:700}
 .header-gear{background:rgba(255,255,255,0.15);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:16px}
@@ -65,14 +64,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .price-input-wrap{background:#111e2b;border:2px solid #8BC34A;border-radius:12px;padding:16px;margin-bottom:14px}
 .price-input-wrap label{color:#8BC34A;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px}
 .price-input-wrap input{background:transparent;border:none;color:#fff;font-size:28px;font-weight:900;outline:none;width:100%}
-.private-box{background:#111e2b;border:1px solid #8BC34A;border-radius:12px;padding:12px;margin-bottom:14px;display:none}
-.private-box h3{font-size:13px;color:#8BC34A;margin-bottom:8px}
-.private-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(139,195,74,0.15)}
-.private-row:last-child{border-bottom:none}
-@media(max-width:640px){.row2{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
 
 <div class="header">
@@ -83,7 +76,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <button class="header-gear" onclick="showSetup()">⚙ Setup</button>
 </div>
 
+<!-- ═══════════════════════════════════════════════ -->
 <!-- SETUP SCREEN -->
+<!-- ═══════════════════════════════════════════════ -->
 <div class="screen active" id="setup-screen">
   <div style="padding:20px">
 
@@ -93,11 +88,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <div class="hint">Fill this once. Your details appear in every proposal automatically.</div>
     </div>
 
+    <!-- Company Identity -->
     <div class="section-title">🏢 Company Identity</div>
 
     <div class="ig">
       <label>Company Logo</label>
-      <div class="photo-placeholder" id="logo-placeholder" onclick="document.getElementById('logo-input').click()">📷 Tap to upload logo</div>
+      <div class="photo-placeholder" id="logo-placeholder" onclick="document.getElementById('logo-input').click()">
+        📷 Tap to upload logo
+      </div>
       <img id="logo-preview" class="photo-preview" />
       <input type="file" id="logo-input" accept="image/*" style="display:none">
     </div>
@@ -119,13 +117,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       </div>
       <div class="ig">
         <label>Installations Completed</label>
-        <input type="text" id="s-installations" placeholder="450+">
+<input type="text" id="s-installations" placeholder="450+">
+        <div class="ig">
+  <label>Total Capacity Installed</label>
+  <input type="text" id="s-totalkw" placeholder="2.1 MW">
+</div>
       </div>
-    </div>
-
-    <div class="ig">
-      <label>Total Capacity Installed</label>
-      <input type="text" id="s-totalkw" placeholder="2.1 MW">
     </div>
 
     <div class="ig">
@@ -135,6 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 
     <div class="divider"></div>
 
+    <!-- Contact -->
     <div class="section-title">📞 Contact Details</div>
 
     <div class="ig">
@@ -159,6 +157,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 
     <div class="divider"></div>
 
+   <!-- Bank Details -->
+<div class="section-title">🏦 Bank Details</div>
+
+<div class="ig">
+  <label>Bank Name</label>
+  <input type="text" id="s-bank" placeholder="HDFC Bank">
+</div>
+
+<div class="row2">
+  <div class="ig">
+    <label>Account Number</label>
+    <input type="text" id="s-account" placeholder="XXXX XXXX XXXX">
+  </div>
+  <div class="ig">
+    <label>IFSC Code</label>
+    <input type="text" id="s-ifsc" placeholder="HDFC0001234">
+  </div>
+</div>
+
+<div class="ig">
+  <label>UPI ID</label>
+  <input type="text" id="s-upi" placeholder="yourname@hdfcbank">
+</div>
+
+<div class="divider"></div>
     <div class="section-title">🏦 Bank Details</div>
 
     <div class="ig">
@@ -166,16 +189,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <input type="text" id="s-bank" placeholder="HDFC Bank">
     </div>
 
-    <div class="row2">
-      <div class="ig">
-        <label>Account Number</label>
-        <input type="text" id="s-account" placeholder="XXXX XXXX XXXX">
-      </div>
-      <div class="ig">
-        <label>IFSC Code</label>
-        <input type="text" id="s-ifsc" placeholder="HDFC0001234">
-      </div>
-    </div>
+   <div class="row2">
+  <div class="ig">
+    <label>Years in Business</label>
+    <input type="text" id="s-years" placeholder="8+">
+  </div>
+  <div class="ig">
+    <label>Installations Completed</label>
+    <input type="text" id="s-installations" placeholder="450+">
+  </div>
+</div>
+
+<div class="ig">
+  <label>Total Capacity Installed</label>
+  <input type="text" id="s-totalkw" placeholder="2.1 MW">
+</div>
 
     <div class="ig">
       <label>UPI ID</label>
@@ -184,8 +212,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 
     <div class="divider"></div>
 
-    <div class="section-title">Past Projects (6 slots — 2 per proposal page)</div>
-    <div class="hint">Upload real installation photos. These will appear as large project proof cards in the proposal.</div>
+    <!-- Past Projects -->
+    <div class="section-title">Past Projects (6 slots — 3 per proposal page)</div>
+    <div class="hint">Upload real installation photos. These will appear as compact project proof cards in the proposal.</div>
 
     <div id="projects-container"></div>
 
@@ -194,7 +223,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════ -->
 <!-- MAIN QUOTE SCREEN -->
+<!-- ═══════════════════════════════════════════════ -->
 <div class="screen" id="main-screen">
 
   <div class="prog">
@@ -204,24 +235,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="ps" id="p4"></div>
   </div>
 
-  <!-- STEP 1 -->
+  <!-- STEP 1: Photo -->
   <div class="step active" id="s1">
     <div class="step-label">Step 1 of 4</div>
     <div class="step-title">Upload Roof Photo</div>
-
     <div class="hint">
       📍 <b>Important:</b> Point your camera <b>NORTH</b> when taking the photo.<br>
       Panels will face south — toward the camera — in the final image.
     </div>
-
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('photo-input').click()">
       <div class="icon">📸</div>
       <p>Tap to take photo or choose from gallery</p>
       <p style="margin-top:8px;font-size:12px;color:#555">Camera must face NORTH</p>
     </div>
-
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
-
     <div id="preview-wrap" style="display:none;margin-top:16px">
       <img id="preview-img" style="width:100%;border-radius:12px;display:block">
       <button class="btn btn-g" onclick="go(2)">Use This Photo →</button>
@@ -229,61 +256,57 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     </div>
   </div>
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: Draw -->
   <div class="step" id="s2">
     <div class="step-label">Step 2 of 4</div>
     <div class="step-title">Mark Panel Area & Support Legs</div>
-
     <div class="hint">
-      <b>Step A:</b> Click corners to draw panel area. Click orange dot to close.<br><br>
+      <b>Step A:</b> Click corners to draw panel area (yellow). Click orange dot to close.<br><br>
       <b>Step B:</b> Switch to Leg mode. Click a corner and drag DOWN to show leg height.
     </div>
-
     <div class="mode-bar">
       <div class="mode-btn active-mode" id="mode-panel" onclick="setMode('panel')">✏️ Panel Area</div>
       <div class="mode-btn" id="mode-leg" onclick="setMode('leg')">📏 Support Legs</div>
     </div>
-
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:#ffd700"></div>Panel area</div>
       <div class="legend-item"><div class="legend-dot" style="background:#ff4500"></div>Support legs</div>
     </div>
-
     <div class="canvas-wrap" id="canvas-wrap">
       <img id="roof-img" src="" alt="">
       <canvas id="draw-canvas"></canvas>
     </div>
-
     <div style="margin-top:10px">
       <button class="btn-r" onclick="clearAll()">✕ Clear</button>
       <button class="btn-r" onclick="undoLast()">↩ Undo</button>
     </div>
-
     <div id="draw-status" style="font-size:13px;color:#aaa;margin-top:10px;text-align:center">
       Click on the photo to mark panel corners
     </div>
-
-    <button class="btn btn-g" id="s2next" onclick="go(3)" disabled style="opacity:0.4;cursor:not-allowed">Confirm Markings →</button>
+    <button class="btn btn-g" id="s2next" onclick="go(3)" disabled style="opacity:0.4;cursor:not-allowed">
+      Confirm Markings →
+    </button>
     <button class="btn btn-b" onclick="go(1)">← Back</button>
   </div>
 
-  <!-- STEP 3 -->
+  <!-- STEP 3: Details -->
   <div class="step" id="s3">
     <div class="step-label">Step 3 of 4</div>
     <div class="step-title">Quote Details</div>
 
+    <!-- Pricing — most prominent -->
     <div class="price-input-wrap">
-      <label>Your Quoted Price (Rs) — leave blank for auto price</label>
-      <input type="number" id="quoted-price" placeholder="Leave blank for auto price" value="" oninput="updateNetCost()">
+      <label>Your Quoted Price (Rs) — Set your margin</label>
+      <input type="number" id="quoted-price" placeholder="325000" value="325000" oninput="updateNetCost()">
     </div>
 
     <div class="row2">
       <div class="ig">
         <label>Subsidy Amount (Rs)</label>
-        <input type="number" id="subsidy-amount" placeholder="Leave blank for auto subsidy" value="" oninput="updateNetCost()">
+        <input type="number" id="subsidy-amount" value="78000" oninput="updateNetCost()">
       </div>
       <div class="ig">
-        <label>Net Customer Pays</label>
+        <label>Net Customer Pays (auto)</label>
         <input type="text" id="net-cost" readonly style="opacity:0.7;font-weight:700;color:#8BC34A">
       </div>
     </div>
@@ -310,7 +333,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
           <option value="600">600W</option>
         </select>
       </div>
-
       <div class="ig">
         <label>Roof Type</label>
         <select id="roof">
@@ -321,105 +343,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         </select>
       </div>
     </div>
-
-    <div class="divider"></div>
-
-    <div class="section-title">Site Assessment / Pricing Homework</div>
-    <div class="hint">These fields help calculate a realistic profitable quotation based on actual site conditions.</div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Customer Type</label>
-        <select id="customer-type">
-          <option value="residential" selected>Residential</option>
-          <option value="commercial">Commercial</option>
-          <option value="industrial">Industrial</option>
-        </select>
-      </div>
-
-      <div class="ig">
-        <label>City / DISCOM</label>
-        <select id="city-discom">
-          <option value="cspdcl">CSPDCL / Chhattisgarh</option>
-          <option value="mppkvvcl">MPPKVVCL / Madhya Pradesh</option>
-          <option value="uppcl">UPPCL / Uttar Pradesh</option>
-          <option value="bescom">BESCOM / Karnataka</option>
-          <option value="other">Other DISCOM</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Monthly Units Consumed</label>
-        <input type="number" id="monthly-units" placeholder="450">
-      </div>
-
-      <div class="ig">
-        <label>Sanctioned Load kW</label>
-        <input type="number" id="sanctioned-load" placeholder="5" step="0.5">
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Cable Routing Distance Meter</label>
-        <input type="number" id="cable-distance" placeholder="30" value="30">
-      </div>
-
-      <div class="ig">
-        <label>Phase Type</label>
-        <select id="phase-type">
-          <option value="single">Single Phase</option>
-          <option value="three" selected>Three Phase</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Mounting Structure Type</label>
-        <select id="mounting-type">
-          <option value="normal" selected>Normal Structure</option>
-          <option value="elevated">Elevated Structure</option>
-          <option value="shed">Shed / Tin Roof Structure</option>
-          <option value="custom">Custom Structure</option>
-        </select>
-      </div>
-
-      <div class="ig">
-        <label>Structure Height Feet</label>
-        <select id="structure-height">
-          <option value="3" selected>3 ft</option>
-          <option value="5">5 ft</option>
-          <option value="7">7 ft</option>
-          <option value="10">10 ft</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="ig">
-        <label>Shading Obstruction</label>
-        <select id="shading">
-          <option value="none" selected>No Shading</option>
-          <option value="low">Low Shading</option>
-          <option value="medium">Medium Shading</option>
-          <option value="high">High Shading</option>
-        </select>
-      </div>
-
-      <div class="ig">
-        <label>Rooftop Access</label>
-        <select id="rooftop-access">
-          <option value="easy" selected>Easy Access</option>
-          <option value="medium">Medium Difficulty</option>
-          <option value="difficult">Difficult Access</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="divider"></div>
 
     <div class="row2">
       <div class="ig">
@@ -432,7 +355,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
           <option>Renewsys Solar</option>
         </select>
       </div>
-
       <div class="ig">
         <label>Inverter Brand</label>
         <select id="inverter-brand">
@@ -457,7 +379,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         <label>Customer Phone</label>
         <input type="text" id="cphone" placeholder="+91 98765 43210">
       </div>
-
       <div class="ig">
         <label>Monthly Bill Rs</label>
         <input type="number" id="bill" value="3000">
@@ -469,17 +390,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <input type="text" id="caddress" placeholder="123 MG Road, Raipur, CG">
     </div>
 
-    <button class="btn btn-g" onclick="generate()">⚡ Generate Quote</button>
+    <button class="btn btn-g" onclick="generate()">⚡ Generate Instant Quote</button>
     <button class="btn btn-b" onclick="go(2)">← Back</button>
   </div>
 
-  <!-- STEP 4 -->
+  <!-- STEP 4: Loading -->
   <div class="step" id="s4">
     <div class="loading">
       <div class="spin"></div>
       <h2 style="font-size:18px;margin-bottom:8px">Generating Your Quote</h2>
       <p style="color:#aaa;font-size:14px;margin-bottom:20px">AI is installing solar panels on your roof</p>
-
       <div style="text-align:left;max-width:280px;margin:0 auto">
         <div class="ls active" id="ls1">📐 Processing roof photo...</div>
         <div class="ls" id="ls2">🏗️ Analysing support structure...</div>
@@ -490,59 +410,49 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     </div>
   </div>
 
-  <!-- STEP 5 -->
+  <!-- STEP 5: Result -->
   <div class="step" id="s5">
     <div class="step-label">✅ Quote Ready</div>
     <div class="step-title">Solar Proposal</div>
-
     <img id="result-img" class="res-img" src="" alt="Solar Design">
-
-    <div class="private-box" id="private-box">
-      <h3>Private Installer Costing</h3>
-      <div class="private-row"><span>Suggested Quote</span><b id="p-suggested">-</b></div>
-      <div class="private-row"><span>Installer Cost</span><b id="p-cost">-</b></div>
-      <div class="private-row"><span>Estimated Margin</span><b id="p-margin">-</b></div>
-      <div class="private-row"><span>Margin %</span><b id="p-margin-pct">-</b></div>
-    </div>
-
     <div class="grid2">
       <div class="card"><div class="val" id="r-kw">-</div><div class="lbl">System Size</div></div>
       <div class="card"><div class="val" id="r-cost">-</div><div class="lbl">Net Cost</div></div>
       <div class="card"><div class="val" id="r-save">-</div><div class="lbl">Annual Savings</div></div>
       <div class="card"><div class="val" id="r-pay">-</div><div class="lbl">Payback Period</div></div>
     </div>
-
     <button class="btn btn-g" onclick="downloadPDF()">📥 Download PDF Proposal</button>
-
-    <button class="wa" onclick="shareWA()">Share via WhatsApp</button>
+    <button class="wa" onclick="shareWA()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      Share via WhatsApp
+    </button>
     <button class="btn btn-b" onclick="resetQuote()">+ New Quote</button>
   </div>
 
-</div>
+</div><!-- end main-screen -->
 
 <script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
 var S = {
-  blob: null,
-  url: null,
-  poly: [],
-  polyClosed: false,
-  legs: [],
-  legDrawing: null,
+  blob: null, url: null,
+  poly: [], polyClosed: false,
+  legs: [], legDrawing: null,
   mode: 'panel',
   result: {}
 };
-
 var canvas, ctx;
 var isDragging = false;
+var INSTALLER_ID = 'installer_' + (localStorage.getItem('installer_id') || generateId());
 
 function generateId() {
-  var id = '9riaap85';
+  var id = '9riaap85';  // ← your actual installer ID
   localStorage.setItem('installer_id', id);
   return id;
 }
 
-var INSTALLER_ID = 'installer_' + (localStorage.getItem('installer_id') || generateId());
-
+// ── SCREEN SWITCHING ──────────────────────────────────────────────────────────
 function showSetup() {
   document.getElementById('setup-screen').classList.add('active');
   document.getElementById('main-screen').classList.remove('active');
@@ -554,27 +464,23 @@ function showMain() {
   document.getElementById('setup-screen').classList.remove('active');
 }
 
+// ── SETUP SCREEN ──────────────────────────────────────────────────────────────
 var projectFiles = {};
 
 function buildProjectSlots() {
   var container = document.getElementById('projects-container');
   container.innerHTML = '';
-
   for (var i = 0; i < 6; i++) {
     (function(idx) {
       var slot = document.createElement('div');
       slot.className = 'project-slot';
-
       slot.innerHTML = `
-        <div class="project-slot-header">
-          Project ${idx + 1}
-          <span class="badge">Project Proof Page ${Math.floor(idx / 2) + 1}</span>
-        </div>
-
-        <div class="photo-placeholder" id="pp-placeholder-${idx}" onclick="document.getElementById('pp-input-${idx}').click()">Upload project photo</div>
+        <div class="project-slot-header">Project ${idx + 1} <span class="badge">Project Proof Page ${Math.floor(idx/3)+1}</span></div>
+        <div class="photo-placeholder" id="pp-placeholder-${idx}" onclick="document.getElementById('pp-input-${idx}').click()">
+  Upload project photo
+</div>
         <img id="pp-preview-${idx}" class="photo-preview" />
         <input type="file" id="pp-input-${idx}" accept="image/*" style="display:none">
-
         <div class="row2" style="margin-top:8px">
           <div class="ig">
             <label>Project Name</label>
@@ -585,7 +491,6 @@ function buildProjectSlots() {
             <input type="text" id="pp-city-${idx}" placeholder="Raipur, CG">
           </div>
         </div>
-
         <div class="row2">
           <div class="ig">
             <label>Capacity (kW)</label>
@@ -596,7 +501,6 @@ function buildProjectSlots() {
             <input type="text" id="pp-roof-${idx}" placeholder="Flat RCC Roof">
           </div>
         </div>
-
         <div class="row2">
           <div class="ig">
             <label>Annual Generation</label>
@@ -607,7 +511,6 @@ function buildProjectSlots() {
             <input type="text" id="pp-date-${idx}" placeholder="March 2025">
           </div>
         </div>
-
         <div class="row2">
           <div class="ig">
             <label>Rating</label>
@@ -618,25 +521,20 @@ function buildProjectSlots() {
             <input type="text" id="pp-author-${idx}" placeholder="Rajesh K., Raipur">
           </div>
         </div>
-
         <div class="ig">
           <label>Customer Quote</label>
           <textarea id="pp-quote-${idx}" placeholder="Excellent installation, very professional team."></textarea>
         </div>
       `;
-
       container.appendChild(slot);
 
       document.getElementById('pp-input-' + idx).addEventListener('change', function(e) {
         var f = e.target.files[0];
         if (!f) return;
-
         projectFiles[idx] = f;
-
         var url = URL.createObjectURL(f);
         var preview = document.getElementById('pp-preview-' + idx);
         var placeholder = document.getElementById('pp-placeholder-' + idx);
-
         preview.src = url;
         preview.style.display = 'block';
         placeholder.style.display = 'none';
@@ -648,66 +546,33 @@ function buildProjectSlots() {
 function loadProfileIntoForm() {
   var saved = localStorage.getItem('installer_profile');
   if (!saved) return;
-
   var p = JSON.parse(saved);
 
-  var map = {
-    company: p.company || p.company_name,
-    tagline: p.tagline,
-    years: p.years,
-    installations: p.installations,
-    totalkw: p.totalkw || p.total_kw,
-    gst: p.gst,
-    phone: p.phone,
-    email: p.email,
-    website: p.website,
-    address: p.address,
-    bank: p.bank || p.bank_name,
-    account: p.account || p.account_no,
-    ifsc: p.ifsc,
-    upi: p.upi
-  };
-
-  Object.keys(map).forEach(function(key) {
-    var el = document.getElementById('s-' + key);
-    if (el && map[key]) el.value = map[key];
+ var fields = ['company','tagline','years','installations','totalkw','gst','phone','email','website','address','bank','account','ifsc','upi'];
+  fields.forEach(function(f) {
+    var el = document.getElementById('s-' + f);
+    if (el && p[f]) el.value = p[f];
   });
 
   if (p.logo_url) {
-    var logoPreview = document.getElementById('logo-preview');
-    logoPreview.src = p.logo_url;
-    logoPreview.style.display = 'block';
+    var preview = document.getElementById('logo-preview');
+    preview.src = p.logo_url;
+    preview.style.display = 'block';
     document.getElementById('logo-placeholder').style.display = 'none';
   }
 
   if (p.projects) {
     p.projects.forEach(function(proj, idx) {
       if (!proj) return;
-
-      var projectMap = {
-        name: proj.name,
-        city: proj.city,
-        cap: proj.cap || proj.capacity,
-        roof: proj.roof,
-        kwh: proj.kwh,
-        date: proj.date,
-        rating: proj.rating,
-        author: proj.author || proj.quote_author,
-        quote: proj.quote
-      };
-
-      Object.keys(projectMap).forEach(function(key) {
-        var el = document.getElementById('pp-' + key + '-' + idx);
-        if (el && projectMap[key]) el.value = projectMap[key];
+      var fields2 = ['name','city','cap','roof','kwh','date','rating','author','quote'];
+      fields2.forEach(function(f) {
+        var el = document.getElementById('pp-' + f + '-' + idx);
+        if (el && proj[f]) el.value = proj[f];
       });
-
       if (proj.photo_url) {
         var preview = document.getElementById('pp-preview-' + idx);
         var placeholder = document.getElementById('pp-placeholder-' + idx);
-        if (preview) {
-          preview.src = proj.photo_url;
-          preview.style.display = 'block';
-        }
+        if (preview) { preview.src = proj.photo_url; preview.style.display = 'block'; }
         if (placeholder) placeholder.style.display = 'none';
       }
     });
@@ -717,10 +582,8 @@ function loadProfileIntoForm() {
 document.getElementById('logo-input').addEventListener('change', function(e) {
   var f = e.target.files[0];
   if (!f) return;
-
   var url = URL.createObjectURL(f);
   var preview = document.getElementById('logo-preview');
-
   preview.src = url;
   preview.style.display = 'block';
   document.getElementById('logo-placeholder').style.display = 'none';
@@ -732,38 +595,37 @@ async function saveProfile() {
   btn.disabled = true;
 
   var projects = [];
-
   for (var i = 0; i < 6; i++) {
     projects.push({
-      name: document.getElementById('pp-name-' + i).value,
-      city: document.getElementById('pp-city-' + i).value,
-      cap: document.getElementById('pp-cap-' + i).value,
-      capacity: document.getElementById('pp-cap-' + i).value,
-      roof: document.getElementById('pp-roof-' + i).value,
-      kwh: document.getElementById('pp-kwh-' + i).value,
-      date: document.getElementById('pp-date-' + i).value,
+      name:   document.getElementById('pp-name-' + i).value,
+      city:   document.getElementById('pp-city-' + i).value,
+      cap:    document.getElementById('pp-cap-' + i).value,
+      roof:   document.getElementById('pp-roof-' + i).value,
+      kwh:    document.getElementById('pp-kwh-' + i).value,
+      date:   document.getElementById('pp-date-' + i).value,
       rating: document.getElementById('pp-rating-' + i).value,
-      quote: document.getElementById('pp-quote-' + i).value,
-      quote_author: document.getElementById('pp-author-' + i).value
+      quote:  document.getElementById('pp-quote-' + i).value,
+      quote_author: document.getElementById('pp-author-' + i).value,
+      capacity: document.getElementById('pp-cap-' + i).value,
     });
   }
 
   var profileJson = {
     company_name: document.getElementById('s-company').value,
-    tagline: document.getElementById('s-tagline').value,
-    years: document.getElementById('s-years').value,
-    installations: document.getElementById('s-installations').value,
-    total_kw: document.getElementById('s-totalkw').value,
-    gst: document.getElementById('s-gst').value,
-    phone: document.getElementById('s-phone').value,
-    email: document.getElementById('s-email').value,
-    website: document.getElementById('s-website').value,
-    address: document.getElementById('s-address').value,
-    bank_name: document.getElementById('s-bank').value,
-    account_no: document.getElementById('s-account').value,
-    ifsc: document.getElementById('s-ifsc').value,
-    upi: document.getElementById('s-upi').value,
-    projects: projects
+    tagline:      document.getElementById('s-tagline').value,
+    years:        document.getElementById('s-years').value,
+installations: document.getElementById('s-installations')?.value || '',
+total_kw:     document.getElementById('s-totalkw')?.value || '',
+gst:          document.getElementById('s-gst').value,
+    phone:        document.getElementById('s-phone').value,
+    email:        document.getElementById('s-email').value,
+    website:      document.getElementById('s-website').value,
+    address:      document.getElementById('s-address').value,
+    bank_name:    document.getElementById('s-bank').value,
+account_no:   document.getElementById('s-account')?.value || '',
+ifsc:         document.getElementById('s-ifsc')?.value || '',
+    upi:          document.getElementById('s-upi').value,
+    projects:     projects,
   };
 
   var fd = new FormData();
@@ -780,7 +642,6 @@ async function saveProfile() {
   try {
     var res = await fetch('/api/save-profile', { method: 'POST', body: fd });
     var data = await res.json();
-
     if (data.success) {
       localStorage.setItem('installer_profile', JSON.stringify(data.profile));
       alert('✅ Profile saved successfully!');
@@ -796,73 +657,56 @@ async function saveProfile() {
   btn.disabled = false;
 }
 
+// ── STEP NAV ──────────────────────────────────────────────────────────────────
 function go(n) {
-  document.querySelectorAll('.step').forEach(function(s) {
-    s.classList.remove('active');
-  });
-
+  document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('s' + n).classList.add('active');
-
   for (var i = 1; i <= 4; i++) {
     var e = document.getElementById('p' + i);
     if (e) e.className = 'ps' + (i < n ? ' done' : i === n ? ' active' : '');
   }
-
   if (n === 2) initCanvas();
 }
 
+// ── PANEL COUNT ───────────────────────────────────────────────────────────────
 function updatePanelCount() {
-  var kw = parseFloat(document.getElementById('kw').value) || 5;
+  var kw   = parseFloat(document.getElementById('kw').value) || 5;
   var watt = parseInt(document.getElementById('panel-watt').value) || 550;
   document.getElementById('panels').value = Math.ceil((kw * 1000) / watt);
 }
 
 function updateNetCost() {
-  var quoted = parseInt(document.getElementById('quoted-price').value) || 0;
+  var quoted  = parseInt(document.getElementById('quoted-price').value) || 0;
   var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 0;
-  var net = Math.max(0, quoted - subsidy);
-
-  document.getElementById('net-cost').value = quoted > 0
-    ? 'Rs ' + net.toLocaleString('en-IN')
-    : 'Auto calculated by backend';
+  var net     = quoted - subsidy;
+  document.getElementById('net-cost').value = 'Rs ' + net.toLocaleString('en-IN');
 }
 
+// ── PHOTO ─────────────────────────────────────────────────────────────────────
 function compress(file, cb) {
   var r = new FileReader();
-
   r.onload = function(e) {
     var img = new Image();
-
     img.onload = function() {
       var MAX = 1200;
       var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
       var w = Math.round(img.width * ratio);
       var h = Math.round(img.height * ratio);
-
       var c = document.createElement('canvas');
-      c.width = w;
-      c.height = h;
+      c.width = w; c.height = h;
       c.getContext('2d').drawImage(img, 0, 0, w, h);
-
-      c.toBlob(function(blob) {
-        cb(blob, URL.createObjectURL(blob));
-      }, 'image/jpeg', 0.85);
+      c.toBlob(function(blob) { cb(blob, URL.createObjectURL(blob)); }, 'image/jpeg', 0.85);
     };
-
     img.src = e.target.result;
   };
-
   r.readAsDataURL(file);
 }
 
 document.getElementById('photo-input').addEventListener('change', function(e) {
   var f = e.target.files[0];
   if (!f) return;
-
   compress(f, function(blob, url) {
-    S.blob = blob;
-    S.url = url;
-
+    S.blob = blob; S.url = url;
     document.getElementById('preview-img').src = url;
     document.getElementById('preview-wrap').style.display = 'block';
     document.getElementById('upload-zone').style.display = 'none';
@@ -870,36 +714,30 @@ document.getElementById('photo-input').addEventListener('change', function(e) {
 });
 
 function retake() {
-  S.blob = null;
-  S.url = null;
+  S.blob = null; S.url = null;
   document.getElementById('preview-wrap').style.display = 'none';
   document.getElementById('upload-zone').style.display = 'block';
   document.getElementById('photo-input').value = '';
 }
 
+// ── CANVAS ────────────────────────────────────────────────────────────────────
 function initCanvas() {
   var roofImg = document.getElementById('roof-img');
   canvas = document.getElementById('draw-canvas');
   ctx = canvas.getContext('2d');
-
-  S.poly = [];
-  S.polyClosed = false;
-  S.legs = [];
-  S.legDrawing = null;
+  S.poly = []; S.polyClosed = false;
+  S.legs = []; S.legDrawing = null;
   isDragging = false;
-
   setMode('panel');
 
   roofImg.onload = function() {
-    canvas.width = roofImg.offsetWidth;
+    canvas.width  = roofImg.offsetWidth;
     canvas.height = roofImg.offsetHeight;
-    canvas.style.width = roofImg.offsetWidth + 'px';
+    canvas.style.width  = roofImg.offsetWidth + 'px';
     canvas.style.height = roofImg.offsetHeight + 'px';
-
     attachEvents();
     updateStatus();
   };
-
   roofImg.src = S.url;
 }
 
@@ -910,234 +748,130 @@ function attachEvents() {
   ctx = canvas.getContext('2d');
 
   canvas.addEventListener('mousedown', function(e) {
-    e.preventDefault();
-    isDragging = true;
+    e.preventDefault(); isDragging = true;
     var pt = getCoords(e);
     if (S.mode === 'panel') handlePanelTap(pt); else startLeg(pt);
   });
-
   canvas.addEventListener('mousemove', function(e) {
     e.preventDefault();
     if (!isDragging) return;
-    if (S.mode === 'leg' && S.legDrawing) {
-      S.legDrawing.current = getCoords(e);
-      redraw();
-    }
+    if (S.mode === 'leg' && S.legDrawing) { S.legDrawing.current = getCoords(e); redraw(); }
   });
-
   canvas.addEventListener('mouseup', function(e) {
     e.preventDefault();
     if (S.mode === 'leg' && S.legDrawing) finishLeg(getCoords(e));
     isDragging = false;
   });
-
   canvas.addEventListener('mouseleave', function() {
-    if (isDragging && S.mode === 'leg' && S.legDrawing && S.legDrawing.current) {
-      finishLeg(S.legDrawing.current);
-    }
+    if (isDragging && S.mode === 'leg' && S.legDrawing && S.legDrawing.current) finishLeg(S.legDrawing.current);
     isDragging = false;
   });
-
   canvas.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    isDragging = true;
+    e.preventDefault(); isDragging = true;
     var pt = getCoords(e);
     if (S.mode === 'panel') handlePanelTap(pt); else startLeg(pt);
-  }, { passive:false });
-
+  }, {passive:false});
   canvas.addEventListener('touchmove', function(e) {
     e.preventDefault();
-    if (S.mode === 'leg' && S.legDrawing) {
-      S.legDrawing.current = getCoords(e);
-      redraw();
-    }
-  }, { passive:false });
-
+    if (S.mode === 'leg' && S.legDrawing) { S.legDrawing.current = getCoords(e); redraw(); }
+  }, {passive:false});
   canvas.addEventListener('touchend', function(e) {
     e.preventDefault();
-    if (S.mode === 'leg' && S.legDrawing && S.legDrawing.current) {
-      finishLeg(S.legDrawing.current);
-    }
+    if (S.mode === 'leg' && S.legDrawing && S.legDrawing.current) finishLeg(S.legDrawing.current);
     isDragging = false;
-  }, { passive:false });
+  }, {passive:false});
 }
 
 function getCoords(e) {
-  var r = canvas.getBoundingClientRect();
+  var r   = canvas.getBoundingClientRect();
   var src = e.touches ? e.touches[0] : e;
   return { x: src.clientX - r.left, y: src.clientY - r.top };
 }
 
-function dist(a, b) {
-  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-}
+function dist(a, b) { return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2); }
 
 function setMode(mode) {
   S.mode = mode;
-
-  document.getElementById('mode-panel').className = 'mode-btn' + (mode === 'panel' ? ' active-mode' : '');
-  document.getElementById('mode-leg').className = 'mode-btn' + (mode === 'leg' ? ' leg-mode' : '');
-
+  document.getElementById('mode-panel').className = 'mode-btn' + (mode==='panel' ? ' active-mode' : '');
+  document.getElementById('mode-leg').className   = 'mode-btn' + (mode==='leg'   ? ' leg-mode'    : '');
   updateStatus();
 }
 
 function handlePanelTap(pt) {
   if (S.polyClosed) return;
-
   if (S.poly.length >= 3 && dist(pt, S.poly[0]) < 20) {
-    S.polyClosed = true;
-    redraw();
-    updateStatus();
-
-    setTimeout(function() {
-      setMode('leg');
-    }, 400);
-
+    S.polyClosed = true; redraw(); updateStatus();
+    setTimeout(function() { setMode('leg'); }, 400);
     return;
   }
-
-  S.poly.push({ x: pt.x, y: pt.y });
-  redraw();
-  updateStatus();
+  S.poly.push({x:pt.x, y:pt.y}); redraw(); updateStatus();
 }
 
 function startLeg(pt) {
   if (!S.polyClosed || !S.poly.length) return;
-
-  var best = 0;
-  var bestDist = dist(pt, S.poly[0]);
-
+  var best = 0, bestDist = dist(pt, S.poly[0]);
   for (var i = 1; i < S.poly.length; i++) {
     var d = dist(pt, S.poly[i]);
-    if (d < bestDist) {
-      bestDist = d;
-      best = i;
-    }
+    if (d < bestDist) { bestDist = d; best = i; }
   }
-
   if (bestDist < 40) {
-    S.legDrawing = {
-      cornerIndex: best,
-      top: { x: S.poly[best].x, y: S.poly[best].y },
-      current: null
-    };
+    S.legDrawing = { cornerIndex: best, top: {x:S.poly[best].x, y:S.poly[best].y}, current: null };
   }
 }
 
 function finishLeg(pt) {
   if (!S.legDrawing) return;
-
   var top = S.legDrawing.top;
-
   if (pt.y > top.y + 15) {
-    S.legs = S.legs.filter(function(l) {
-      return l.cornerIndex !== S.legDrawing.cornerIndex;
-    });
-
-    S.legs.push({
-      cornerIndex: S.legDrawing.cornerIndex,
-      top: { x: top.x, y: top.y },
-      bottom: { x: top.x, y: pt.y }
-    });
+    S.legs = S.legs.filter(function(l) { return l.cornerIndex !== S.legDrawing.cornerIndex; });
+    S.legs.push({ cornerIndex: S.legDrawing.cornerIndex, top: {x:top.x, y:top.y}, bottom: {x:top.x, y:pt.y} });
   }
-
-  S.legDrawing = null;
-  redraw();
-  checkEnableNext();
+  S.legDrawing = null; redraw(); checkEnableNext();
 }
 
 function redraw() {
   if (!ctx) return;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   var p = S.poly;
   if (!p.length) return;
 
   if (S.polyClosed) {
-    ctx.beginPath();
-    ctx.moveTo(p[0].x, p[0].y);
-
-    p.forEach(function(pt) {
-      ctx.lineTo(pt.x, pt.y);
-    });
-
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255,215,0,0.18)';
-    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(p[0].x, p[0].y);
+    p.forEach(function(pt) { ctx.lineTo(pt.x, pt.y); });
+    ctx.closePath(); ctx.fillStyle = 'rgba(255,215,0,0.18)'; ctx.fill();
   }
-
-  ctx.beginPath();
-  ctx.moveTo(p[0].x, p[0].y);
-
-  p.forEach(function(pt) {
-    ctx.lineTo(pt.x, pt.y);
-  });
-
+  ctx.beginPath(); ctx.moveTo(p[0].x, p[0].y);
+  p.forEach(function(pt) { ctx.lineTo(pt.x, pt.y); });
   if (S.polyClosed) ctx.closePath();
-
-  ctx.strokeStyle = '#ffd700';
-  ctx.lineWidth = 2.5;
-  ctx.setLineDash(S.polyClosed ? [] : [6,3]);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2.5;
+  ctx.setLineDash(S.polyClosed ? [] : [6,3]); ctx.stroke(); ctx.setLineDash([]);
 
   p.forEach(function(pt, i) {
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = i === 0 ? '#ff6b35' : '#ffd700';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(pt.x, pt.y, 8, 0, Math.PI*2);
+    ctx.fillStyle = i===0 ? '#ff6b35' : '#ffd700'; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
   });
 
   if (S.polyClosed) {
-    var cx = p.reduce(function(s, pt) { return s + pt.x; }, 0) / p.length;
-    var cy = p.reduce(function(s, pt) { return s + pt.y; }, 0) / p.length;
-
-    ctx.font = 'bold 13px sans-serif';
-    ctx.fillStyle = '#ffd700';
-    ctx.textAlign = 'center';
-    ctx.fillText('INSTALL SOLAR HERE', cx, cy);
-    ctx.textAlign = 'left';
+    var cx = p.reduce(function(s,pt){return s+pt.x;},0)/p.length;
+    var cy = p.reduce(function(s,pt){return s+pt.y;},0)/p.length;
+    ctx.font = 'bold 13px sans-serif'; ctx.fillStyle = '#ffd700';
+    ctx.textAlign = 'center'; ctx.fillText('INSTALL SOLAR HERE', cx, cy); ctx.textAlign = 'left';
   }
 
-  S.legs.forEach(function(leg) {
-    drawLegLine(leg.top, leg.bottom, true);
-  });
-
-  if (S.legDrawing && S.legDrawing.current) {
-    drawLegLine(S.legDrawing.top, S.legDrawing.current, false);
-  }
+  S.legs.forEach(function(leg) { drawLegLine(leg.top, leg.bottom, true); });
+  if (S.legDrawing && S.legDrawing.current) drawLegLine(S.legDrawing.top, S.legDrawing.current, false);
 }
 
 function drawLegLine(top, bottom, showLabel) {
-  ctx.beginPath();
-  ctx.moveTo(top.x, top.y);
-  ctx.lineTo(bottom.x, bottom.y);
-  ctx.strokeStyle = '#ff4500';
-  ctx.lineWidth = 3;
-  ctx.setLineDash([]);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(top.x, top.y, 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#ff4500';
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(bottom.x, bottom.y, 7, 0, Math.PI * 2);
-  ctx.fillStyle = '#ff6b35';
-  ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
+  ctx.beginPath(); ctx.moveTo(top.x, top.y); ctx.lineTo(bottom.x, bottom.y);
+  ctx.strokeStyle = '#ff4500'; ctx.lineWidth = 3; ctx.setLineDash([]); ctx.stroke();
+  ctx.beginPath(); ctx.arc(top.x, top.y, 5, 0, Math.PI*2); ctx.fillStyle = '#ff4500'; ctx.fill();
+  ctx.beginPath(); ctx.arc(bottom.x, bottom.y, 7, 0, Math.PI*2);
+  ctx.fillStyle = '#ff6b35'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
   if (showLabel) {
     var ft = Math.round(((bottom.y - top.y) / canvas.height) * 15);
-    ctx.font = '10px sans-serif';
-    ctx.fillStyle = '#ff4500';
+    ctx.font = '10px sans-serif'; ctx.fillStyle = '#ff4500';
     ctx.fillText('~' + ft + ' ft', top.x + 8, (top.y + bottom.y) / 2);
   }
 }
@@ -1145,26 +879,15 @@ function drawLegLine(top, bottom, showLabel) {
 function updateStatus() {
   var el = document.getElementById('draw-status');
   if (!el) return;
-
   if (S.mode === 'panel') {
     var n = S.poly.length;
-
-    if (n === 0) {
-      el.textContent = 'Click on the photo to mark panel corners';
-      el.style.color = '#aaa';
-    } else if (n < 3) {
-      el.textContent = n + ' points — add ' + (3 - n) + ' more minimum';
-      el.style.color = '#aaa';
-    } else if (!S.polyClosed) {
-      el.textContent = n + ' points — click the orange dot to close';
-      el.style.color = '#ffd700';
-    } else {
-      el.textContent = '✅ Area marked — switch to Support Legs';
-      el.style.color = '#22a855';
-    }
+    if      (n === 0)       { el.textContent = 'Click on the photo to mark panel corners'; el.style.color = '#aaa'; }
+    else if (n < 3)         { el.textContent = n + ' points — add ' + (3-n) + ' more minimum'; el.style.color = '#aaa'; }
+    else if (!S.polyClosed) { el.textContent = n + ' points — click the orange dot to close'; el.style.color = '#ffd700'; }
+    else                    { el.textContent = '✅ Area marked — switch to Support Legs'; el.style.color = '#22a855'; }
   } else {
     var lc = S.legs.length;
-    el.textContent = lc + ' leg' + (lc !== 1 ? 's' : '') + ' drawn — click a corner and drag DOWN';
+    el.textContent = lc + ' leg' + (lc!==1?'s':'') + ' drawn — click a corner and drag DOWN';
     el.style.color = lc >= 2 ? '#22a855' : '#ff6b35';
   }
 }
@@ -1172,170 +895,89 @@ function updateStatus() {
 function checkEnableNext() {
   var btn = document.getElementById('s2next');
   if (!btn) return;
-
   var ok = S.polyClosed && S.legs.length >= 2;
-
-  btn.disabled = !ok;
-  btn.style.opacity = ok ? '1' : '0.4';
-  btn.style.cursor = ok ? 'pointer' : 'not-allowed';
-
+  btn.disabled = !ok; btn.style.opacity = ok ? '1' : '0.4'; btn.style.cursor = ok ? 'pointer' : 'not-allowed';
   updateStatus();
 }
 
 function clearAll() {
-  S.poly = [];
-  S.polyClosed = false;
-  S.legs = [];
-  S.legDrawing = null;
-
+  S.poly = []; S.polyClosed = false; S.legs = []; S.legDrawing = null;
   if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  setMode('panel');
-  checkEnableNext();
+  setMode('panel'); checkEnableNext();
 }
 
 function undoLast() {
-  if (S.mode === 'leg' && S.legs.length > 0) {
-    S.legs.pop();
-  } else if (!S.polyClosed && S.poly.length > 0) {
-    S.poly.pop();
-  } else if (S.polyClosed) {
-    S.polyClosed = false;
-    S.legs = [];
-    setMode('panel');
-  }
-
-  if (ctx) redraw();
-
-  checkEnableNext();
-  updateStatus();
+  if (S.mode === 'leg' && S.legs.length > 0) { S.legs.pop(); }
+  else if (!S.polyClosed && S.poly.length > 0) { S.poly.pop(); }
+  else if (S.polyClosed) { S.polyClosed = false; S.legs = []; setMode('panel'); }
+  if (ctx) redraw(); checkEnableNext(); updateStatus();
 }
 
+// ── BURN MARKINGS ─────────────────────────────────────────────────────────────
 function burnMarkingsToBlob(cb) {
   var img = new Image();
-
   img.onload = function() {
     var c = document.createElement('canvas');
-    c.width = img.naturalWidth;
-    c.height = img.naturalHeight;
-
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
     var x = c.getContext('2d');
     x.drawImage(img, 0, 0);
-
     var sfx = img.naturalWidth / canvas.width;
     var sfy = img.naturalHeight / canvas.height;
-    var p = S.poly;
-
+    var p   = S.poly;
     if (p.length >= 3) {
-      x.beginPath();
-      x.moveTo(p[0].x * sfx, p[0].y * sfy);
-
-      p.forEach(function(pt) {
-        x.lineTo(pt.x * sfx, pt.y * sfy);
-      });
-
-      x.closePath();
-      x.fillStyle = 'rgba(255,215,0,0.18)';
-      x.fill();
-
-      x.strokeStyle = '#ffd700';
-      x.lineWidth = 4 * sfx;
-      x.stroke();
-
-      var cx = p.reduce(function(s, pt) { return s + pt.x; }, 0) / p.length;
-      var cy = p.reduce(function(s, pt) { return s + pt.y; }, 0) / p.length;
-
-      x.font = 'bold ' + Math.round(16 * sfx) + 'px sans-serif';
-      x.fillStyle = '#ffd700';
-      x.textAlign = 'center';
-      x.fillText('INSTALL SOLAR HERE', cx * sfx, cy * sfy);
-      x.textAlign = 'left';
+      x.beginPath(); x.moveTo(p[0].x*sfx, p[0].y*sfy);
+      p.forEach(function(pt) { x.lineTo(pt.x*sfx, pt.y*sfy); });
+      x.closePath(); x.fillStyle = 'rgba(255,215,0,0.18)'; x.fill();
+      x.strokeStyle = '#ffd700'; x.lineWidth = 4*sfx; x.stroke();
+      var cx = p.reduce(function(s,pt){return s+pt.x;},0)/p.length;
+      var cy = p.reduce(function(s,pt){return s+pt.y;},0)/p.length;
+      x.font = 'bold ' + Math.round(16*sfx) + 'px sans-serif';
+      x.fillStyle = '#ffd700'; x.textAlign = 'center';
+      x.fillText('INSTALL SOLAR HERE', cx*sfx, cy*sfy); x.textAlign = 'left';
     }
-
     S.legs.forEach(function(leg) {
-      x.beginPath();
-      x.moveTo(leg.top.x * sfx, leg.top.y * sfy);
-      x.lineTo(leg.bottom.x * sfx, leg.bottom.y * sfy);
-      x.strokeStyle = '#ff4500';
-      x.lineWidth = 4 * sfx;
-      x.stroke();
-
-      x.beginPath();
-      x.arc(leg.top.x * sfx, leg.top.y * sfy, 8 * sfx, 0, Math.PI * 2);
-      x.fillStyle = '#ff4500';
-      x.fill();
-
-      x.beginPath();
-      x.arc(leg.bottom.x * sfx, leg.bottom.y * sfy, 9 * sfx, 0, Math.PI * 2);
-      x.fillStyle = '#ff6b35';
-      x.fill();
-      x.strokeStyle = '#fff';
-      x.lineWidth = 2 * sfx;
-      x.stroke();
-
+      x.beginPath(); x.moveTo(leg.top.x*sfx, leg.top.y*sfy); x.lineTo(leg.bottom.x*sfx, leg.bottom.y*sfy);
+      x.strokeStyle = '#ff4500'; x.lineWidth = 4*sfx; x.stroke();
+      x.beginPath(); x.arc(leg.top.x*sfx, leg.top.y*sfy, 8*sfx, 0, Math.PI*2);
+      x.fillStyle = '#ff4500'; x.fill();
+      x.beginPath(); x.arc(leg.bottom.x*sfx, leg.bottom.y*sfy, 9*sfx, 0, Math.PI*2);
+      x.fillStyle = '#ff6b35'; x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 2*sfx; x.stroke();
       var ft = Math.round(((leg.bottom.y - leg.top.y) / canvas.height) * 15);
-
-      x.font = 'bold ' + Math.round(12 * sfx) + 'px sans-serif';
+      x.font = 'bold ' + Math.round(12*sfx) + 'px sans-serif';
       x.fillStyle = '#ff4500';
-      x.fillText('LEG ~' + ft + 'ft', (leg.top.x + 10) * sfx, ((leg.top.y + leg.bottom.y) / 2) * sfy);
+      x.fillText('LEG ~' + ft + 'ft', (leg.top.x+10)*sfx, ((leg.top.y+leg.bottom.y)/2)*sfy);
     });
-
-    c.toBlob(function(blob) {
-      cb(blob);
-    }, 'image/jpeg', 0.88);
+    c.toBlob(function(blob) { cb(blob); }, 'image/jpeg', 0.88);
   };
-
   img.src = S.url;
 }
 
+// ── GENERATE ──────────────────────────────────────────────────────────────────
 function animateSteps() {
-  var ids = ['ls1','ls2','ls3','ls4','ls5'];
+  var ids    = ['ls1','ls2','ls3','ls4','ls5'];
   var delays = [0, 5000, 10000, 20000, 28000];
-
   ids.forEach(function(id, i) {
     setTimeout(function() {
-      ids.forEach(function(x) {
-        document.getElementById(x).classList.remove('active');
-      });
-
+      ids.forEach(function(x) { document.getElementById(x).classList.remove('active'); });
       document.getElementById(id).classList.add('active');
     }, delays[i]);
   });
 }
 
 async function generate() {
-  if (!S.url || !S.polyClosed || S.legs.length < 2) {
-    alert('Please upload photo, mark panel area, and draw at least 2 support legs.');
-    return;
-  }
+  var kw      = parseFloat(document.getElementById('kw').value)           || 5;
+  var watt    = parseInt(document.getElementById('panel-watt').value)     || 550;
+  var bill    = parseInt(document.getElementById('bill').value)           || 3000;
+  var price   = parseInt(document.getElementById('quoted-price').value)   || 325000;
+  var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 78000;
+  var cname   = document.getElementById('cname').value    || 'Homeowner';
+  var cphone  = document.getElementById('cphone').value   || '';
+  var caddr   = document.getElementById('caddress').value || '';
+  var pbrand  = document.getElementById('panel-brand').value;
+  var ibrand  = document.getElementById('inverter-brand').value;
+  var roof    = document.getElementById('roof').value;
 
-  var kw = parseFloat(document.getElementById('kw').value) || 5;
-  var watt = parseInt(document.getElementById('panel-watt').value) || 550;
-  var bill = parseInt(document.getElementById('bill').value) || 3000;
-  var price = parseInt(document.getElementById('quoted-price').value) || 0;
-  var subsidy = parseInt(document.getElementById('subsidy-amount').value) || 0;
-
-  var cname = document.getElementById('cname').value || 'Homeowner';
-  var cphone = document.getElementById('cphone').value || '';
-  var caddr = document.getElementById('caddress').value || '';
-
-  var pbrand = document.getElementById('panel-brand').value;
-  var ibrand = document.getElementById('inverter-brand').value;
-  var roof = document.getElementById('roof').value;
-
-  var customerType = document.getElementById('customer-type').value;
-  var cityDiscom = document.getElementById('city-discom').value;
-  var monthlyUnits = parseInt(document.getElementById('monthly-units').value) || 0;
-  var sanctionedLoad = parseFloat(document.getElementById('sanctioned-load').value) || 0;
-  var cableDistance = parseFloat(document.getElementById('cable-distance').value) || 30;
-  var phaseType = document.getElementById('phase-type').value;
-  var mountingType = document.getElementById('mounting-type').value;
-  var structureHeight = parseFloat(document.getElementById('structure-height').value) || 3;
-  var shading = document.getElementById('shading').value;
-  var rooftopAccess = document.getElementById('rooftop-access').value;
-
-  go(4);
-  animateSteps();
+  go(4); animateSteps();
 
   burnMarkingsToBlob(async function(markedBlob) {
     var legHeights = S.legs.map(function(leg) {
@@ -1343,178 +985,91 @@ async function generate() {
     });
 
     var fd = new FormData();
-
-    fd.append('photo', markedBlob, 'roof_marked.jpg');
-    fd.append('installer_id', INSTALLER_ID);
-
-    fd.append('system_kw', kw);
-    fd.append('panel_watt', watt);
-    fd.append('quoted_price', price);
-    fd.append('subsidy_amount', subsidy);
-    fd.append('monthly_bill', bill);
-
-    fd.append('roof_type', roof);
-    fd.append('panel_brand', pbrand);
-    fd.append('inverter_brand', ibrand);
-
-    fd.append('customer_name', cname);
-    fd.append('customer_phone', cphone);
+    fd.append('photo',            markedBlob, 'roof_marked.jpg');
+    fd.append('installer_id',     INSTALLER_ID);
+    fd.append('system_kw',        kw);
+    fd.append('panel_watt',       watt);
+    fd.append('quoted_price',     price);
+    fd.append('subsidy_amount',   subsidy);
+    fd.append('monthly_bill',     bill);
+    fd.append('roof_type',        roof);
+    fd.append('panel_brand',      pbrand);
+    fd.append('inverter_brand',   ibrand);
+    fd.append('customer_name',    cname);
+    fd.append('customer_phone',   cphone);
     fd.append('customer_address', caddr);
-
-    fd.append('customer_type', customerType);
-    fd.append('city_discom', cityDiscom);
-    fd.append('monthly_units', monthlyUnits);
-    fd.append('sanctioned_load', sanctionedLoad);
-    fd.append('cable_distance', cableDistance);
-    fd.append('phase_type', phaseType);
-    fd.append('mounting_type', mountingType);
-    fd.append('structure_height', structureHeight);
-    fd.append('shading', shading);
-    fd.append('rooftop_access', rooftopAccess);
-
-    fd.append('leg_heights_ft', JSON.stringify(legHeights));
-
-    var controller = new AbortController();
-    var timeout = setTimeout(function() {
-      controller.abort();
-    }, 300000);
+    fd.append('leg_heights_ft',   JSON.stringify(legHeights));
 
     try {
-      var res = await fetch('/api/generate-quote', {
-        method: 'POST',
-        body: fd,
-        signal: controller.signal
-      });
-
-      clearTimeout(timeout);
-
-      var text = await res.text();
-      var data;
-
-      try {
-        data = JSON.parse(text);
-      } catch(e) {
-        throw new Error('Server returned non-JSON response: ' + text.slice(0, 200));
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Server error');
-      }
-
-      console.log('Generate quote response:', data);
-
+     var res = await fetch('/api/generate-quote', {
+  method: 'POST',
+  body: fd,
+  signal: AbortSignal.timeout(300000)  // 5 minute timeout
+});
+      if (!res.ok) { var err = await res.json(); throw new Error(err.error || 'Server error'); }
+      var data = await res.json();
       S.result = data;
-
-      if (!data.pdf_url) {
-        alert('PDF was not returned by backend. Check Railway logs.');
-        return;
-      }
-
       showResult(data);
     } catch(err) {
-      clearTimeout(timeout);
-
-      if (err.name === 'AbortError') {
-        alert('Generation timed out after 5 minutes. Please try again.');
-      } else {
-        alert('Error: ' + err.message + '\n\nPlease try again.');
-      }
-
+      alert('Error: ' + err.message + '\n\nPlease try again.');
       go(3);
     }
   });
 }
 
 function fmt(n) {
-  n = Number(n || 0);
-
-  if (n >= 100000) return (n / 100000).toFixed(1) + 'L';
-  if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
-
+  if (n >= 100000) return (n/100000).toFixed(1) + 'L';
+  if (n >= 1000)   return (n/1000).toFixed(0) + 'K';
   return String(n);
 }
 
 function showResult(data) {
-  var f = data.financials || {};
-
-  document.getElementById('result-img').src = data.image_url || '';
-  document.getElementById('r-kw').textContent = (f.systemKw || '-') + ' kW';
-  document.getElementById('r-cost').textContent = 'Rs ' + fmt(f.netCost);
-  document.getElementById('r-save').textContent = 'Rs ' + fmt(f.annualSaving) + '/yr';
-  document.getElementById('r-pay').textContent = (f.payback || '-') + ' yrs';
-
-  if (f.installerCost || f.suggestedQuote || f.estimatedMargin) {
-    document.getElementById('private-box').style.display = 'block';
-    document.getElementById('p-suggested').textContent = 'Rs ' + fmt(f.suggestedQuote);
-    document.getElementById('p-cost').textContent = 'Rs ' + fmt(f.installerCost);
-    document.getElementById('p-margin').textContent = 'Rs ' + fmt(f.estimatedMargin);
-    document.getElementById('p-margin-pct').textContent = (f.estimatedMarginPct || 0) + '%';
-  }
-
+  var f = data.financials;
+  document.getElementById('result-img').src  = data.image_url;
+  document.getElementById('r-kw').textContent   = f.systemKw + ' kW';
+  document.getElementById('r-cost').textContent  = 'Rs ' + fmt(f.netCost);
+  document.getElementById('r-save').textContent  = 'Rs ' + fmt(f.annualSaving) + '/yr';
+  document.getElementById('r-pay').textContent   = f.payback + ' yrs';
   go(5);
 }
 
 function downloadPDF() {
-  console.log('Current result:', S.result);
-
-  if (!S.result || !S.result.pdf_url) {
-    alert('PDF link not found. Please generate the quote again first.');
-    return;
-  }
-
-  var a = document.createElement('a');
-  a.href = S.result.pdf_url;
-  a.target = '_blank';
-  a.rel = 'noopener';
-  a.download = 'SolarQuote-Proposal.pdf';
-
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  if (S.result.pdf_url) window.open(S.result.pdf_url, '_blank');
 }
 
 function shareWA() {
-  var f = S.result.financials || {};
-  var hw = document.getElementById('cname').value || 'Homeowner';
-
-  var msg =
+  var f   = S.result.financials || {};
+  var hw  = document.getElementById('cname').value || 'Homeowner';
+  var msg = encodeURIComponent(
     'Solar Proposal for ' + hw + '\n\n' +
-    'System: ' + (f.systemKw || '') + ' kW\n' +
-    'Net Cost: Rs ' + fmt(f.netCost || 0) + ' after subsidy\n' +
-    'Annual Savings: Rs ' + fmt(f.annualSaving || 0) + '\n' +
-    'Payback: ' + (f.payback || '') + ' years\n';
-
-  if (S.result.pdf_url) {
-    msg += '\nPDF Proposal: ' + S.result.pdf_url;
-  }
-
-  msg += '\n\nGenerated by SolarQuote';
-
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    'System: ' + (f.systemKw||'') + ' kW\n' +
+    'Net Cost: Rs ' + fmt(f.netCost||0) + ' after subsidy\n' +
+    'Annual Savings: Rs ' + fmt(f.annualSaving||0) + '\n' +
+    'Payback: ' + (f.payback||'') + ' years\n\n' +
+    'Generated by SolarQuote'
+  );
+  window.open('https://wa.me/?text=' + msg, '_blank');
 }
 
 function resetQuote() {
-  S.blob = null;
-  S.url = null;
-  S.poly = [];
-  S.polyClosed = false;
-  S.legs = [];
-  S.legDrawing = null;
+  S.blob = null; S.url = null;
+  S.poly = []; S.polyClosed = false;
+  S.legs = []; S.legDrawing = null;
   S.result = {};
-
   document.getElementById('upload-zone').style.display = 'block';
   document.getElementById('preview-wrap').style.display = 'none';
   document.getElementById('photo-input').value = '';
-
   go(1);
 }
 
+// ── INIT ──────────────────────────────────────────────────────────────────────
 buildProjectSlots();
 updateNetCost();
 updatePanelCount();
 
+// Auto-show setup if no profile saved
 if (!localStorage.getItem('installer_profile')) {
-  // setup screen already active
+  // Already showing setup screen by default
 } else {
   showMain();
 }
