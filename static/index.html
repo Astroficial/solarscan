@@ -983,7 +983,7 @@ async function generate(){
     fd.append('customer_address',caddr);
     fd.append('leg_heights_ft',JSON.stringify(legHeights));
     try{
-      var res=await fetch('/api/generate-quote',{method:'POST',body:fd,signal:AbortSignal.timeout(300000)});
+     var res=await fetch('/api/generate-quote',{method:'POST',body:fd});
       if(!res.ok){var err=await res.json();throw new Error(err.error||'Server error');}
       var data=await res.json();
       S.result=data;
